@@ -3,7 +3,7 @@ OpenMP with loops
 Choose between eager/lazy
 Use Hilbert key instead of C->X, level offset instead of C->R
 
-Jenkins tests
+Travis CI tests
 Helmholtz
 Stokes
 MPI
