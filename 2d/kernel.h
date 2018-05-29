@@ -13,7 +13,7 @@ namespace exafmm {
   }
 
   //!< P2P kernel between cells Ci and Cj
-  void P2P(Cell * Ci, Cell * Cj) {
+  void P2PX(Cell * Ci, Cell * Cj) {
     Body * Bi = Ci->BODY;                                       // Target body pointer
     Body * Bj = Cj->BODY;                                       // Source body pointer
     for (int i=0; i<Ci->NBODY; i++) {                           // Loop over target bodies
@@ -33,15 +33,39 @@ namespace exafmm {
     }                                                           // End loop over target bodies
   }
 
+    //!< P2P kernel between cells Ci and Cj
+  void P2P(Cell * Ci, Cell * Cj) {
+    real_t wi = 0.5;
+    real_t wj = 0.5;
+    Body * Bi = Ci->BODY;                                       // Target body pointer
+    Body * Bj = Cj->BODY;                                       // Source body pointer
+    for (int i=0; i<Ci->NBODY; i++) {                           // Loop over target bodies
+      real_t p = 0, F[2] = {0, 0};                              //  Initialize potential, force
+      for (int j=0; j<Cj->NBODY; j++) {                         //  Loop over source bodies
+        for (int d=0; d<2; d++) dX[d] = Bi[i].X[d] - Bj[j].X[d];//   Calculate distance vector
+        real_t R2 = norm(dX);                                   //   Calculate distance squared
+        if (R2 != 0) {                                          //   If not the same point
+          real_t invR = 1 / sqrt(R2);                           //    1 / R
+          real_t logR = Bj[j].q * log(invR);                    //    q * log(R)
+          p += logR;                                            //    Potential
+          for (int d=0; d<2; d++) F[d] += dX[d] * Bj[j].q / R2; //    Force
+        }                                                       //   End if for same point
+      }                                                         //  End loop over source points
+      Bi[i].p += p * wi * wj;                                   //  Accumulate potential
+      for (int d=0; d<2; d++) Bi[i].F[d] -= F[d] * wi * wj;     //  Accumulate force
+    }                                                           // End loop over target bodies
+  }
+
   //!< P2M kernel for cell C
   void P2M(Cell * C) {
+    real_t w = 0.5;
     for (Body * B=C->BODY; B!=C->BODY+C->NBODY; B++) {          // Loop over bodies
       for (int d=0; d<2; d++) dX[d] = B->X[d] - C->X[d];        //  Get distance vector
       complex_t Z(dX[0],dX[1]), powZ(1.0, 0.0);                 //  Convert to complex plane
-      C->M[0] += B->q;                                          //  Add constant term
+      C->M[0] += B->q * w;                                      //  Add constant term
       for (int n=1; n<P; n++) {                                 //  Loop over coefficients
         powZ *= Z / real_t(n);                                  //   Store z^n / n!
-        C->M[n] += powZ * B->q;                                 //   Add to coefficient
+        C->M[n] += powZ * B->q * w;                             //   Add to coefficient
       }                                                         //  End loop
     }                                                           // End loop
   }
@@ -109,18 +133,19 @@ namespace exafmm {
 
   //!< L2P kernel for cell C
   void L2P(Cell * C) {
+    real_t w = 0.5;
     for (Body * B=C->BODY; B!=C->BODY+C->NBODY; B++) {          // Loop over bodies
       for (int d=0; d<2; d++) dX[d] = B->X[d] - C->X[d];        //  Get distance vector
       complex_t Z(dX[0],dX[1]), powZ(1.0, 0.0);                 //  Convert to complex plane
-      B->p += std::real(C->L[0]);                               //  Add constant term
-      B->F[0] += std::real(C->L[1]);                            //  Add constant term
-      B->F[1] -= std::imag(C->L[1]);                            //  Add constant term
+      B->p += std::real(C->L[0]) * w;                           //  Add constant term
+      B->F[0] += std::real(C->L[1]) * w;                        //  Add constant term
+      B->F[1] -= std::imag(C->L[1]) * w;                        //  Add constant term
       for (int n=1; n<P; n++) {                                 //  Loop over coefficients
         powZ *= Z / real_t(n);                                  //   Store z^n / n!
-        B->p += std::real(C->L[n] * powZ);                      //   Add real part to solution
+        B->p += std::real(C->L[n] * powZ) * w;                  //   Add real part to solution
         if (n < P-1) {                                          //   Condition for force accumulation
-          B->F[0] += std::real(C->L[n+1] * powZ);               //    Add real part to solution
-          B->F[1] -= std::imag(C->L[n+1] * powZ);               //    Add real part to solution
+          B->F[0] += std::real(C->L[n+1] * powZ) * w;           //    Add real part to solution
+          B->F[1] -= std::imag(C->L[n+1] * powZ) * w;           //    Add real part to solution
         }                                                       //   End condition for force accumulation
       }                                                         //  End loop
     }                                                           // End loop
