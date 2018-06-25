@@ -6,7 +6,7 @@ int main(int argc, char ** argv) {
 
   // P2M
   Bodies jbodies(1);
-  jbodies[0].X[0] = 6;
+  jbodies[0].X[0] = 6.5;
   jbodies[0].X[1] = 0;
   jbodies[0].q = 1;
   Cells cells(4);
@@ -68,7 +68,7 @@ int main(int argc, char ** argv) {
 
   // L2P
   Bodies bodies(1);
-  bodies[0].X[0] = -6;
+  bodies[0].X[0] = -6.5;
   bodies[0].X[1] = 0;
   bodies[0].q = 1;
   bodies[0].p = 0;

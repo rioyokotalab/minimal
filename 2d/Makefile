@@ -11,8 +11,8 @@ all:
 
 kernel: kernel.o
 	$(CXX) $? -o $@
-	./kernel 10
-	./kernel 20
+#	./kernel 10
+#	./kernel 20
 	./kernel 30
 
 fmm: fmm.o
