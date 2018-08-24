@@ -2,127 +2,209 @@
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-    P = atoi(argv[1]);
+  P = atoi(argv[1]);
 
-    Bodies jbodies(3);
-    jbodies[0].X[0] = 8.5;
-    jbodies[0].X[1] = 0;
-    jbodies[0].q = 1;
+  Bodies jbodies(3);
+  /*
+  jbodies[0].X[0] = 8.5;
+  jbodies[0].X[1] = 1.5;
+  jbodies[0].q = 1;
 
-    jbodies[1].X[0] = 8.0;
-    jbodies[1].X[1] = 0;
-    jbodies[1].q = 1;
+  jbodies[1].X[0] = 8.0;
+  jbodies[1].X[1] = 1.5;
+  jbodies[1].q = 1;
 
-    jbodies[2].X[0] = 7.5;
-    jbodies[2].X[1] = 0;
-    jbodies[2].q = 1;
+  jbodies[2].X[0] = 7.5;
+  jbodies[2].X[1] = 1.5;
+  jbodies[2].q = 1;
+  */
 
-    Cells cells(6);
+  jbodies[0].X[0] = 8.0;
+  jbodies[0].X[1] = 2.0;
+  jbodies[0].q = 1;
 
-    // P2M
-    Cell *CJ = &cells[0];
-    CJ->X[0] = 10;
-    CJ->X[1] = 0;
-    CJ->R = 2;
-    CJ->BODY = &jbodies[0];
-    CJ->NBODY = jbodies.size();
-    CJ->M.resize(P, 0.0);
-    P2M(CJ);
+  jbodies[1].X[0] = 8.0;
+  jbodies[1].X[1] = 2.0;
+  jbodies[1].q = 1;
 
-    //P2M CJ2
-    Cell *CJ2 = &cells[1];
-    CJ2->X[0] = 6;
-    CJ2->X[1] = 0;
-    CJ2->R = 2;
-    CJ2->BODY = &jbodies[0];
-    CJ2->NBODY = jbodies.size();
-    CJ2->M.resize(P, 0.0);
-    P2M(CJ2);
+  jbodies[2].X[0] = 8.0;
+  jbodies[2].X[1] = 2.0;
+  jbodies[2].q = 1;
+
+  /*
+  jbodies[6].X[0] = 8.5;
+  jbodies[6].X[1] = 2.5;
+  jbodies[6].q = 1;
+
+  jbodies[7].X[0] = 8.0;
+  jbodies[7].X[1] = 2.5;
+  jbodies[7].q = 1;
+
+  jbodies[8].X[0] = 7.5;
+  jbodies[8].X[1] = 2.5;
+  jbodies[8].q = 1;
+  */
+
+  Cells cells(10);
+
+  // P2M
+  Cell *CJ = &cells[0];
+  CJ->X[0] = 10;
+  CJ->X[1] = 0;
+  CJ->R = 2;
+  CJ->BODY = &jbodies[0];
+  CJ->NBODY = jbodies.size();
+  CJ->M.resize(P, 0.0);
+  P2M(CJ);
+
+  Cell *CJ2 = &cells[1];
+  CJ2->X[0] = 6;
+  CJ2->X[1] = 0;
+  CJ2->R = 2;
+  CJ2->BODY = &jbodies[0];
+  CJ2->NBODY = jbodies.size();
+  CJ2->M.resize(P, 0.0);
+  P2M(CJ2);
+
+  Cell *CJ3 = &cells[2];
+  CJ3->X[0] = 10;
+  CJ3->X[1] = 4;
+  CJ3->R = 2;
+  CJ3->BODY = &jbodies[0];
+  CJ3->NBODY = jbodies.size();
+  CJ3->M.resize(P, 0.0);
+  P2M(CJ3);
+
+  Cell *CJ4 = &cells[3];
+  CJ4->X[0] = 10;
+  CJ4->X[1] = 4;
+  CJ4->R = 2;
+  CJ4->BODY = &jbodies[0];
+  CJ4->NBODY = jbodies.size();
+  CJ4->M.resize(P, 0.0);
+  P2M(CJ4);
+
+  //M2M
+  Cell *CJ5 =&cells[4];
+  CJ5->CHILD = CJ;
+  CJ5->NCHILD = 4;
+
+  CJ5->X[0] = 8;
+  CJ5->X[1] = 2;
+  CJ5->R = 4;
+  CJ5->M.resize(P,0.0);
+  M2M(CJ5);
 
 
-    //M2M CJ3
-    Cell *CJ3 =&cells[2];
-    CJ3->CHILD = CJ;
-    CJ3->NCHILD = 2;
+  // M2L
+  Cell *CI = &cells[5];
+  CI->X[0] = -10;
+  CI->X[1] = 0;
+  CI->R = 2;
+  CI->L.resize(P, 0.0);
 
-    CJ3->X[0] = 8;
-    CJ3->X[1] = 0;
-    CJ3->R = 4;
-    CJ3->M.resize(P,0.0);
-    M2M(CJ3);
+  Cell *CI2 = &cells[6];
+  CI2->X[0] = -6;
+  CI2->X[1] = 0;
+  CI2->R = 2;
+  CI2->L.resize(P, 0.0);
 
+  Cell *CI3 = &cells[7];
+  CI3->X[0] = -10;
+  CI3->X[1] = 4;
+  CI3->R = 2;
+  CI3->L.resize(P, 0.0);
 
-    // M2L
-    Cell *CI = &cells[3];
-    CI->X[0] = -10;
-    CI->X[1] = 0;
-    CI->R = 2;
-    CI->L.resize(P, 0.0);
+  Cell *CI4 = &cells[8];
+  CI4->X[0] = -6;
+  CI4->X[1] = 4;
+  CI4->R = 2;
+  CI4->L.resize(P, 0.0);
 
+  Cell *CI5 = &cells[9];
+  CI5->CHILD = CI;
+  CI5->NCHILD = 4;
+  CI5->X[0] = -8;
+  CI5->X[1] = 2;
+  CI5->L.resize(P,0.0);
 
-    Cell *CI2 = &cells[4];
-    CI2->X[0] = -6;
-    CI2->X[1] = 0;
-    CI2->R = 2;
-    CI2->L.resize(P, 0.0);
+  M2L(CI5,CJ5);
 
-    Cell *CI3 = &cells[5];
-    CI3->CHILD = CI;
-    CI3->NCHILD = 2;
-    CI3->X[0] = -8;
-    CI3->X[1] = 0;
-    CI3->L.resize(P,0.0);
+  // L2L
+  L2L(CI5);
 
-    M2L(CI3,CJ3);
+  //L2P
+  Bodies bodies(9);
+  bodies[0].X[0] = -8.5;
+  bodies[0].X[1] = 1.5;
+  bodies[0].q = 1;
 
-    // L2L
-    L2L(CI3);
+  bodies[1].X[0] = -8.0;
+  bodies[1].X[1] = 1.5;
+  bodies[1].q = 1;
 
+  bodies[2].X[0] = -7.5;
+  bodies[2].X[1] = 1.5;
+  bodies[2].q = 1;
 
-    //L2P
-    Bodies bodies(3);
-    bodies[0].X[0] = - 8.5;
-    bodies[0].X[1] = 0;
-    bodies[0].q = 1;
-    bodies[0].p = 0;
+  bodies[3].X[0] = -8.5;
+  bodies[3].X[1] = 2.0;
+  bodies[3].q = 1;
 
-    bodies[1].X[0] = -8.0;
-    bodies[1].X[1] = 0;
-    bodies[1].q = 1;
-    bodies[1].p = 0;
+  bodies[4].X[0] = -8.0;
+  bodies[4].X[1] = 2.0;
+  bodies[4].q = 1;
 
-    bodies[2].X[0] = -7.5;
-    bodies[2].X[1] = 0;
-    bodies[2].q = 1;
-    bodies[2].p = 0;
+  bodies[5].X[0] = -7.5;
+  bodies[5].X[1] = 2.0;
+  bodies[5].q = 1;
 
-    for (int d = 0; d < 2; d++){
-        bodies[0].F[d] = 0;
-        bodies[1].F[d] = 0;
-        bodies[2].F[d] = 0;
+  bodies[6].X[0] = -8.5;
+  bodies[6].X[1] = 2.5;
+  bodies[6].q = 1;
+
+  bodies[7].X[0] = -8.0;
+  bodies[7].X[1] = 2.5;
+  bodies[7].q = 1;
+
+  bodies[8].X[0] = -7.5;
+  bodies[8].X[1] = 2.5;
+  bodies[8].q = 1;
+
+  for (size_t b = 0; b < bodies.size(); b++) {
+    bodies[b].p = 0;
+    for (int d=0; d<2; d++){
+      bodies[b].F[d] = 0;
     }
+  }
 
-    CI->BODY = &bodies[0];
-    CI->NBODY = bodies.size();
-    CI2->BODY = &bodies[0];
-    CI2->NBODY = bodies.size();
-    L2P(CI);
-    L2P(CI2);
+  CI->BODY = &bodies[0];
+  CI->NBODY = bodies.size();
+  CI2->BODY = &bodies[0];
+  CI2->NBODY = bodies.size();
+  CI3->BODY = &bodies[0];
+  CI3->NBODY = bodies.size();
+  CI4->BODY = &bodies[0];
+  CI4->NBODY = bodies.size();
+  L2P(CI);
+  L2P(CI2);
+  L2P(CI3);
+  L2P(CI4);
 
-    // P2P
-    //P2P(CI2, CJ2);
+  // P2P
+  //P2P(CI2, CJ2);
 
-    Bodies bodies2(3);
-    for (size_t b = 0; b < bodies2.size(); b++) {
-        bodies2[b] = bodies[b];
-        bodies2[b].p = 0;
-        for (int d = 0; d < 2; d++) bodies2[b].F[d] = 0;
-   }
+  Bodies bodies2(bodies.size());
+  for (size_t b = 0; b < bodies2.size(); b++) {
+    bodies2[b] = bodies[b];
+    bodies2[b].p = 0;
+    for (int d = 0; d < 2; d++) bodies2[b].F[d] = 0;
+  }
 
-    CJ->NBODY = jbodies.size();
-    CI->NBODY = bodies2.size();
-    CI->BODY = &bodies2[0];
-    P2PX(CI, CJ);
+  CJ->NBODY = jbodies.size();
+  CI->NBODY = bodies2.size();
+  CI->BODY = &bodies2[0];
+  P2PX(CI, CJ);
 
   // Verify results
   real_t pDif = 0, pNrm = 0, FDif = 0, FNrm = 0;
