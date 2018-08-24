@@ -39,13 +39,13 @@ namespace exafmm {
     Body * Bj = Cj->BODY;                                       // Source body pointer
     for (int i=0; i<Ci->NBODY; i++) {                           // Loop over target bodies
       real_t p = 0, F[2] = {0, 0};                              //  Initialize potential, force
-      real_t xi = std::abs(Ci->BODY->X[0] - Ci->X[0]) - Ci->R;
-      real_t yi = std::abs(Ci->BODY->X[1] - Ci->X[1]) - Ci->R;
+      real_t xi = std::abs(Bi[i].X[0] - Ci->X[0]) - Ci->R;
+      real_t yi = std::abs(Bi[i].X[1] - Ci->X[1]) - Ci->R;
       real_t wi = (2 + 3 * xi - xi * xi * xi) / 4;
       wi *= (2 + 3 * yi - yi * yi * yi) / 4;
       for (int j=0; j<Cj->NBODY; j++) {                         //  Loop over source bodies
-        real_t xj = std::abs(Cj->BODY->X[0] - Cj->X[0]) - Cj->R;
-        real_t yj = std::abs(Cj->BODY->X[1] - Cj->X[1]) - Cj->R;
+        real_t xj = std::abs(Bj[j].X[0] - Cj->X[0]) - Cj->R;
+        real_t yj = std::abs(Bj[j].X[1] - Cj->X[1]) - Cj->R;
         real_t wj = (2 + 3 * xj - xj * xj * xj) / 4;
         wj *= (2 + 3 * yj - yj * yj * yj) / 4;
         for (int d=0; d<2; d++) dX[d] = Bi[i].X[d] - Bj[j].X[d];//   Calculate distance vector
@@ -66,8 +66,8 @@ namespace exafmm {
   void P2M(Cell * C) {
     for (Body * B=C->BODY; B!=C->BODY+C->NBODY; B++) {          // Loop over bodies
       for (int d=0; d<2; d++) dX[d] = B->X[d] - C->X[d];        //  Get distance vector
-      real_t x = std::abs(C->BODY->X[0] - C->X[0]) - C->R;
-      real_t y = std::abs(C->BODY->X[1] - C->X[1]) - C->R;
+      real_t x = std::abs(B->X[0] - C->X[0]) - C->R;
+      real_t y = std::abs(B->X[1] - C->X[1]) - C->R;
       real_t w = (2 + 3 * x - x * x * x) / 4;
       w *= (2 + 3 * y - y * y * y) / 4;
       complex_t Z(dX[0],dX[1]), powZ(1.0, 0.0);                 //  Convert to complex plane
@@ -143,8 +143,8 @@ namespace exafmm {
   //!< L2P kernel for cell C
   void L2P(Cell * C) {
     for (Body * B=C->BODY; B!=C->BODY+C->NBODY; B++) {          // Loop over bodies
-      real_t x = std::abs(C->BODY->X[0] - C->X[0]) - C->R;
-      real_t y = std::abs(C->BODY->X[1] - C->X[1]) - C->R;
+      real_t x = std::abs(B->X[0] - C->X[0]) - C->R;
+      real_t y = std::abs(B->X[1] - C->X[1]) - C->R;
       real_t w = (2 + 3 * x - x * x * x) / 4;
       w *= (2 + 3 * y - y * y * y) / 4;
       for (int d=0; d<2; d++) dX[d] = B->X[d] - C->X[d];        //  Get distance vector

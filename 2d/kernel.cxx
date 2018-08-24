@@ -19,8 +19,8 @@ int main(int argc, char ** argv) {
   jbodies[2].q = 1;
   */
 
-  jbodies[0].X[0] = 8.0;
-  jbodies[0].X[1] = 2.0;
+  jbodies[0].X[0] = 8.1;
+  jbodies[0].X[1] = 1.5;
   jbodies[0].q = 1;
 
   jbodies[1].X[0] = 8.0;
@@ -28,7 +28,7 @@ int main(int argc, char ** argv) {
   jbodies[1].q = 1;
 
   jbodies[2].X[0] = 8.0;
-  jbodies[2].X[1] = 2.0;
+  jbodies[2].X[1] = 2.5;
   jbodies[2].q = 1;
 
   /*
