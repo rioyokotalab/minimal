@@ -7,9 +7,9 @@ using namespace exafmm;
 
 int main(int argc, char ** argv) {
   const int numBodies = 100000;                                 // Number of bodies
-  P = 10;                                                       // Order of expansions
-  ncrit = 8;                                                    // Number of bodies per leaf cell
-  theta = 0.4;                                                  // Multipole acceptance criterion
+  P = 30;                                                       // Order of expansions
+  ncrit = 32;                                                   // Number of bodies per leaf cell
+  theta = 0.2;                                                  // Multipole acceptance criterion
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodie

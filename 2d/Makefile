@@ -9,7 +9,7 @@ all:
 	@make kernel
 	@make fmm
 
-kernel: kernel.o
+kernel: kernel_new.o
 	$(CXX) $? -o $@
 #	./kernel 10
 #	./kernel 20

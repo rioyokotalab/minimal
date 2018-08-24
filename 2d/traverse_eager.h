@@ -80,7 +80,7 @@ namespace exafmm {
     Ci->NBODY = bodies.size();                                  // Number of target bodies
     Cj->BODY = &jbodies[0];                                     // Pointer of first source body
     Cj->NBODY = jbodies.size();                                 // Number of source bodies
-    P2P(Ci, Cj);                                                // Evaluate P2P kernel
+    P2PX(Ci, Cj);                                               // Evaluate P2P kernel
   }
 }
 
