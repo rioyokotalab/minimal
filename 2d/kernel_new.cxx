@@ -5,23 +5,23 @@ int main(int argc, char ** argv) {
     P = atoi(argv[1]);
 
     Bodies jbodies(3);
-    jbodies[0].X[0] = 6.5;
+    jbodies[0].X[0] = 8.5;
     jbodies[0].X[1] = 0;
     jbodies[0].q = 1;
 
-    jbodies[1].X[0] = 6.0;
+    jbodies[1].X[0] = 8.0;
     jbodies[1].X[1] = 0;
     jbodies[1].q = 1;
 
-    jbodies[2].X[0] = 5.5;
+    jbodies[2].X[0] = 7.5;
     jbodies[2].X[1] = 0;
     jbodies[2].q = 1;
 
-    Cells cells(4);
+    Cells cells(6);
 
     // P2M
     Cell *CJ = &cells[0];
-    CJ->X[0] = 8;
+    CJ->X[0] = 10;
     CJ->X[1] = 0;
     CJ->R = 2;
     CJ->BODY = &jbodies[0];
@@ -31,7 +31,7 @@ int main(int argc, char ** argv) {
 
     //P2M CJ2
     Cell *CJ2 = &cells[1];
-    CJ2->X[0] = 4;
+    CJ2->X[0] = 6;
     CJ2->X[1] = 0;
     CJ2->R = 2;
     CJ2->BODY = &jbodies[0];
@@ -39,38 +39,64 @@ int main(int argc, char ** argv) {
     CJ2->M.resize(P, 0.0);
     P2M(CJ2);
 
+
+    //M2M CJ3
+    Cell *CJ3 =&cells[2];
+    CJ3->CHILD = CJ;
+    CJ3->NCHILD = 2;
+    
+    CJ3->X[0] = 8;
+    CJ3->X[1] = 0;
+    CJ3->R = 4;
+    CJ3->M.resize(P,0.0);
+    M2M(CJ3);
+
+
     // M2L
-    Cell *CI = &cells[2];
-    CI->X[0] = -8;
+    Cell *CI = &cells[3];
+    CI->X[0] = -10;
     CI->X[1] = 0;
     CI->R = 2;
     CI->L.resize(P, 0.0);
 
-    //M2L (CI2,CJ) (CI,CJ2)
-    Cell *CI2 = &cells[3];
-    CI2->X[0] = -4;
+    
+    Cell *CI2 = &cells[4];
+    CI2->X[0] = -6;
     CI2->X[1] = 0;
     CI2->R = 2;
     CI2->L.resize(P, 0.0);
 
+    Cell *CI3 = &cells[5];
+    CI3->CHILD = CI;
+    CI3->NCHILD = 2;
+    CI3->X[0] = -8;
+    CI3->X[1] = 0;
+    CI3->L.resize(P,0.0);
+
+
     M2L(CI, CJ);
     M2L(CI, CJ2);
-    M2L(CI2, CJ);
+    M2L(CI2,CJ);
+    M2L(CI2,CJ2);
+    M2L(CI3,CJ3);
 
-
+   
+    L2L(CI3);   
+  
+ 
     //L2P
     Bodies bodies(3);
-    bodies[0].X[0] = - 6.5;
+    bodies[0].X[0] = - 8.5;
     bodies[0].X[1] = 0;
     bodies[0].q = 1;
     bodies[0].p = 0;
 
-    bodies[1].X[0] = -6.0;
+    bodies[1].X[0] = -8.0;
     bodies[1].X[1] = 0;
     bodies[1].q = 1;
     bodies[1].p = 0;
 
-    bodies[2].X[0] = -5.5;
+    bodies[2].X[0] = -7.5;
     bodies[2].X[1] = 0;
     bodies[2].q = 1;
     bodies[2].p = 0;
@@ -89,7 +115,7 @@ int main(int argc, char ** argv) {
     L2P(CI2);
 
     // P2P
-    P2P(CI2, CJ2);
+    //P2P(CI2, CJ2);
 
     Bodies bodies2(3);
     for (size_t b = 0; b < bodies2.size(); b++) {
