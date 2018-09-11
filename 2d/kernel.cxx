@@ -4,8 +4,7 @@ using namespace exafmm;
 int main(int argc, char ** argv) {
   P = atoi(argv[1]);
 
-  Bodies jbodies(3);
-  /*
+  Bodies jbodies(9);
   jbodies[0].X[0] = 8.5;
   jbodies[0].X[1] = 1.5;
   jbodies[0].q = 1;
@@ -17,21 +16,19 @@ int main(int argc, char ** argv) {
   jbodies[2].X[0] = 7.5;
   jbodies[2].X[1] = 1.5;
   jbodies[2].q = 1;
-  */
 
-  jbodies[0].X[0] = 8.1;
-  jbodies[0].X[1] = 1.5;
-  jbodies[0].q = 1;
+  jbodies[3].X[0] = 8.5;
+  jbodies[3].X[1] = 2.0;
+  jbodies[3].q = 1;
 
-  jbodies[1].X[0] = 8.0;
-  jbodies[1].X[1] = 2.0;
-  jbodies[1].q = 1;
+  jbodies[4].X[0] = 8.0;
+  jbodies[4].X[1] = 2.0;
+  jbodies[4].q = 1;
 
-  jbodies[2].X[0] = 8.0;
-  jbodies[2].X[1] = 2.5;
-  jbodies[2].q = 1;
+  jbodies[5].X[0] = 7.5;
+  jbodies[5].X[1] = 2.0;
+  jbodies[5].q = 1;
 
-  /*
   jbodies[6].X[0] = 8.5;
   jbodies[6].X[1] = 2.5;
   jbodies[6].q = 1;
@@ -43,7 +40,6 @@ int main(int argc, char ** argv) {
   jbodies[8].X[0] = 7.5;
   jbodies[8].X[1] = 2.5;
   jbodies[8].q = 1;
-  */
 
   Cells cells(10);
 
@@ -76,7 +72,7 @@ int main(int argc, char ** argv) {
   P2M(CJ3);
 
   Cell *CJ4 = &cells[3];
-  CJ4->X[0] = 10;
+  CJ4->X[0] = 6;
   CJ4->X[1] = 4;
   CJ4->R = 2;
   CJ4->BODY = &jbodies[0];
@@ -192,7 +188,24 @@ int main(int argc, char ** argv) {
   L2P(CI4);
 
   // P2P
-  //P2P(CI2, CJ2);
+#if 0
+  P2P(CI, CJ);
+  P2P(CI, CJ2);
+  P2P(CI, CJ3);
+  P2P(CI, CJ4);
+  P2P(CI2, CJ);
+  P2P(CI2, CJ2);
+  P2P(CI2, CJ3);
+  P2P(CI2, CJ4);
+  P2P(CI3, CJ);
+  P2P(CI3, CJ2);
+  P2P(CI3, CJ3);
+  P2P(CI3, CJ4);
+  P2P(CI4, CJ);
+  P2P(CI4, CJ2);
+  P2P(CI4, CJ3);
+  P2P(CI4, CJ4);
+#endif
 
   Bodies bodies2(bodies.size());
   for (size_t b = 0; b < bodies2.size(); b++) {

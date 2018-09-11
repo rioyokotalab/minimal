@@ -12,6 +12,15 @@ namespace exafmm {
     return X[0] * X[0] + X[1] * X[1];                           // L2 norm
   }
 
+  //!< Weight of smoothing function
+  inline real_t weight(Body * B, Cell * C) {
+    real_t x = fmax(std::abs(B->X[0] - C->X[0]) - C->R, -1);
+    real_t y = fmax(std::abs(B->X[1] - C->X[1]) - C->R, -1);
+    real_t w = (2 + 3 * x - x * x * x) / 4;
+    w *= (2 + 3 * y - y * y * y) / 4;
+    return w;
+  }
+
   //!< P2P kernel between cells Ci and Cj
   void P2PX(Cell * Ci, Cell * Cj) {
     Body * Bi = Ci->BODY;                                       // Target body pointer
@@ -39,15 +48,9 @@ namespace exafmm {
     Body * Bj = Cj->BODY;                                       // Source body pointer
     for (int i=0; i<Ci->NBODY; i++) {                           // Loop over target bodies
       real_t p = 0, F[2] = {0, 0};                              //  Initialize potential, force
-      real_t xi = std::abs(Bi[i].X[0] - Ci->X[0]) - Ci->R;
-      real_t yi = std::abs(Bi[i].X[1] - Ci->X[1]) - Ci->R;
-      real_t wi = (2 + 3 * xi - xi * xi * xi) / 4;
-      wi *= (2 + 3 * yi - yi * yi * yi) / 4;
+      real_t wi = weight(&Bi[i], Ci);
       for (int j=0; j<Cj->NBODY; j++) {                         //  Loop over source bodies
-        real_t xj = std::abs(Bj[j].X[0] - Cj->X[0]) - Cj->R;
-        real_t yj = std::abs(Bj[j].X[1] - Cj->X[1]) - Cj->R;
-        real_t wj = (2 + 3 * xj - xj * xj * xj) / 4;
-        wj *= (2 + 3 * yj - yj * yj * yj) / 4;
+        real_t wj = weight(&Bj[j], Cj);
         for (int d=0; d<2; d++) dX[d] = Bi[i].X[d] - Bj[j].X[d];//   Calculate distance vector
         real_t R2 = norm(dX);                                   //   Calculate distance squared
         if (R2 != 0) {                                          //   If not the same point
@@ -66,10 +69,7 @@ namespace exafmm {
   void P2M(Cell * C) {
     for (Body * B=C->BODY; B!=C->BODY+C->NBODY; B++) {          // Loop over bodies
       for (int d=0; d<2; d++) dX[d] = B->X[d] - C->X[d];        //  Get distance vector
-      real_t x = std::abs(B->X[0] - C->X[0]) - C->R;
-      real_t y = std::abs(B->X[1] - C->X[1]) - C->R;
-      real_t w = (2 + 3 * x - x * x * x) / 4;
-      w *= (2 + 3 * y - y * y * y) / 4;
+      real_t w = weight(B, C);
       complex_t Z(dX[0],dX[1]), powZ(1.0, 0.0);                 //  Convert to complex plane
       C->M[0] += B->q * w;                                      //  Add constant term
       for (int n=1; n<P; n++) {                                 //  Loop over coefficients
@@ -143,10 +143,7 @@ namespace exafmm {
   //!< L2P kernel for cell C
   void L2P(Cell * C) {
     for (Body * B=C->BODY; B!=C->BODY+C->NBODY; B++) {          // Loop over bodies
-      real_t x = std::abs(B->X[0] - C->X[0]) - C->R;
-      real_t y = std::abs(B->X[1] - C->X[1]) - C->R;
-      real_t w = (2 + 3 * x - x * x * x) / 4;
-      w *= (2 + 3 * y - y * y * y) / 4;
+      real_t w = weight(B, C);
       for (int d=0; d<2; d++) dX[d] = B->X[d] - C->X[d];        //  Get distance vector
       complex_t Z(dX[0],dX[1]), powZ(1.0, 0.0);                 //  Convert to complex plane
       B->p += std::real(C->L[0]) * w;                           //  Add constant term
