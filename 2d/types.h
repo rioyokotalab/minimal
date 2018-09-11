@@ -1,5 +1,6 @@
 #ifndef types_h
 #define types_h
+#include <cassert>
 #include <complex>
 #include <cstdio>
 #include <cstdlib>

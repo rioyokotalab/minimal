@@ -4,6 +4,12 @@
 
 namespace exafmm {
   int ncrit;                                                    //!< Number of bodies per leaf cell
+  real_t theta;                                                 //!< Multipole acceptance criterion
+
+  //!< L2 norm of vector X
+  inline real_t norm(real_t * X) {
+    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
+  }
 
   //! Get bounding box of bodies
   void getBounds(Bodies & bodies, real_t & R0, real_t * X0) {
@@ -87,6 +93,56 @@ namespace exafmm {
     }                                                           // End loop over children
   }
 
+  //! Recursive call to dual tree traversal for list construction
+  void getNeighbor(Cell * Ci, Cell * Cj) {
+    real_t dX[2];
+    for (int d=0; d<2; d++) dX[d] = Ci->X[d] - Cj->X[d];        // Distance vector from source to target
+    real_t R2 = norm(dX) * theta * theta;                       // Scalar distance squared
+    if (R2 > (Ci->R + Cj->R) * (Ci->R + Cj->R)) {               // If distance is far enough
+    } else if (Ci->NCHILD == 0 && Cj->NCHILD == 0) {            // Else if both cells are leafs
+      Ci->listP2P.push_back(Cj);                                //  Add to P2P list
+    } else if (Cj->NCHILD == 0 || (Ci->R >= Cj->R && Ci->NCHILD != 0)) {// Else if Cj is leaf or Ci is larger
+      for (Cell * ci=Ci->CHILD; ci!=Ci->CHILD+Ci->NCHILD; ci++) {// Loop over Ci's children
+        getNeighbor(ci, Cj);                                    //   Recursive call to target child cells
+      }                                                         //  End loop over Ci's children
+    } else {                                                    // Else if Ci is leaf or Cj is larger
+      for (Cell * cj=Cj->CHILD; cj!=Cj->CHILD+Cj->NCHILD; cj++) {//  Loop over Cj's children
+        getNeighbor(Ci, cj);                                    //   Recursive call to source child cells
+      }                                                         //  End loop over Cj's children
+    }                                                           // End if for leafs and Ci Cj size
+  }
+
+    //! Evaluate M2L, P2P kernels
+  void addHalo(Cells & cells, Bodies & bodies) {
+    for (size_t i=0; i<cells.size(); i++) {
+      for (int b=0; b<cells[i].NBODY; b++) {
+        Body body;
+        for (int d=0; d<2; d++) body.X[d] = cells[i].BODY[b].X[d];
+        body.q = cells[i].BODY[b].q;
+        body.p = cells[i].BODY[b].p;
+        for (int d=0; d<2; d++) body.F[d] = cells[i].BODY[b].F[d];
+        bodies.push_back(body);
+      }
+      //cells[i].BODY = &bodies.back() - cells[i].NBODY + 1;
+      /*
+      for (size_t j=0; j<cells[i].listP2P.size(); j++) {
+        for (Body * B=cells[j].BODY; B!=cells[j].BODY+cells[j].NBODY; B++) {
+          if (std::abs(B->X[0] - cells[i].X[0]) - cells[i].R < D * cells[i].R) {
+            Body body;
+            for (int d=0; d<2; d++) body.X[d] = B->X[d];
+            body.q = B->q;
+            body.p = B->p;
+            for (int d=0; d<2; d++) body.F[d] = B->F[d];
+            buffer.push_back(body);
+            cells[i].NBODY++;
+          }
+        }
+      }
+      */
+      cells[i].listP2P.clear();
+    }
+  }
+
   Cells buildTree(Bodies & bodies) {
     real_t R0, X0[2];                                           // Radius and center root cell
     getBounds(bodies, R0, X0);                                  // Get bounding box from bodies
@@ -94,6 +150,9 @@ namespace exafmm {
     Cells cells(1);                                             // Vector of cells
     cells.reserve(bodies.size());                               // Reserve memory space
     buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);// Build tree recursively
+    getNeighbor(&cells[0], &cells[0]);
+    //bodies.clear();
+    addHalo(cells, buffer);
     return cells;                                               // Return pointer of root cell
   }
 }
