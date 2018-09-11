@@ -34,6 +34,11 @@ namespace exafmm {
     std::vector<complex_t> L;                                   //!< Local expansion coefficients
   };
   typedef std::vector<Cell> Cells;                              //!< Vector of cells
+
+  //!< L2 norm of vector X
+  inline real_t norm(real_t * X) {
+    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
+  }
 }
 
 #endif

@@ -6,11 +6,6 @@ namespace exafmm {
   int ncrit;                                                    //!< Number of bodies per leaf cell
   real_t theta;                                                 //!< Multipole acceptance criterion
 
-  //!< L2 norm of vector X
-  inline real_t norm(real_t * X) {
-    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
-  }
-
   //! Get bounding box of bodies
   void getBounds(Bodies & bodies, real_t & R0, real_t * X0) {
     real_t Xmin[2], Xmax[2];                                    // Min, max of domain
@@ -115,30 +110,32 @@ namespace exafmm {
     //! Evaluate M2L, P2P kernels
   void addHalo(Cells & cells, Bodies & bodies) {
     for (size_t i=0; i<cells.size(); i++) {
-      for (int b=0; b<cells[i].NBODY; b++) {
-        Body body;
-        for (int d=0; d<2; d++) body.X[d] = cells[i].BODY[b].X[d];
-        body.q = cells[i].BODY[b].q;
-        body.p = cells[i].BODY[b].p;
-        for (int d=0; d<2; d++) body.F[d] = cells[i].BODY[b].F[d];
-        bodies.push_back(body);
-      }
-      //cells[i].BODY = &bodies.back() - cells[i].NBODY + 1;
-      /*
-      for (size_t j=0; j<cells[i].listP2P.size(); j++) {
-        for (Body * B=cells[j].BODY; B!=cells[j].BODY+cells[j].NBODY; B++) {
-          if (std::abs(B->X[0] - cells[i].X[0]) - cells[i].R < D * cells[i].R) {
-            Body body;
-            for (int d=0; d<2; d++) body.X[d] = B->X[d];
-            body.q = B->q;
-            body.p = B->p;
-            for (int d=0; d<2; d++) body.F[d] = B->F[d];
-            buffer.push_back(body);
-            cells[i].NBODY++;
+      if (cells[i].NCHILD == 0) {
+        for (int b=0; b<cells[i].NBODY; b++) {
+          Body body;
+          for (int d=0; d<2; d++) body.X[d] = cells[i].BODY[b].X[d];
+          body.q = cells[i].BODY[b].q;
+          body.p = cells[i].BODY[b].p;
+          for (int d=0; d<2; d++) body.F[d] = cells[i].BODY[b].F[d];
+          bodies.push_back(body);
+        }
+        cells[i].BODY = &bodies.back() - cells[i].NBODY + 1;
+        /*
+        for (size_t j=0; j<cells[i].listP2P.size(); j++) {
+          for (Body * B=cells[j].BODY; B!=cells[j].BODY+cells[j].NBODY; B++) {
+            if (std::abs(B->X[0] - cells[i].X[0]) - cells[i].R < D * cells[i].R) {
+              Body body;
+              for (int d=0; d<2; d++) body.X[d] = B->X[d];
+              body.q = B->q;
+              body.p = B->p;
+              for (int d=0; d<2; d++) body.F[d] = B->F[d];
+              buffer.push_back(body);
+              cells[i].NBODY++;
+            }
           }
         }
+        */
       }
-      */
       cells[i].listP2P.clear();
     }
   }
@@ -149,10 +146,10 @@ namespace exafmm {
     Bodies buffer = bodies;                                     // Copy bodies to buffer
     Cells cells(1);                                             // Vector of cells
     cells.reserve(bodies.size());                               // Reserve memory space
-    buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);// Build tree recursively
+    buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);// Build tree recursively
     getNeighbor(&cells[0], &cells[0]);
-    //bodies.clear();
-    addHalo(cells, buffer);
+    bodies.clear();
+    addHalo(cells, bodies);
     return cells;                                               // Return pointer of root cell
   }
 }
