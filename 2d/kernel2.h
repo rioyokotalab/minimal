@@ -6,6 +6,7 @@ namespace exafmm {
   int P;                                                        //!< Order of expansions
   real_t D;                                                     //!< Halo size
   real_t dX[2];                                                 //!< Distance vector
+  real_t theta;                                                 //!< Multipole acceptance criterion
 #pragma omp threadprivate(dX)                                   //!< Make global variables private
 
   //!< Weight of smoothing function

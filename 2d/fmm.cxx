@@ -1,14 +1,14 @@
-#include "build_tree.h"
 #include "kernel.h"
+#include "build_tree.h"
 #include "timer.h"
 //#include "traverse_eager.h"
 #include "traverse_lazy.h"
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 100000;                                 // Number of bodies
+  const int numBodies = 10000;                                  // Number of bodies
   P = 30;                                                       // Order of expansions
-  D = 1e-6;
+  D = 0.00001;
   ncrit = 32;                                                   // Number of bodies per leaf cell
   theta = 0.2;                                                  // Multipole acceptance criterion
 
