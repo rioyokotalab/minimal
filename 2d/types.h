@@ -4,6 +4,7 @@
 #include <complex>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <vector>
 
 namespace exafmm {

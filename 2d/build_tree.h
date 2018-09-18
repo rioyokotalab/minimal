@@ -4,6 +4,7 @@
 
 namespace exafmm {
   int ncrit;                                                    //!< Number of bodies per leaf cell
+  int maxlevel;                                                 //!< Max depth of tree
 
   //! Get bounding box of bodies
   void getBounds(Bodies & bodies, real_t & R0, real_t * X0) {
@@ -32,6 +33,7 @@ namespace exafmm {
     cell->NCHILD = 0;                                           // Initialize counter for child cells
     for (int d=0; d<2; d++) cell->X[d] = X[d];                  // Center position of cell
     cell->R = R / (1 << level);                                 // Cell radius
+    maxlevel = std::max(maxlevel, level);
     //! If cell is a leaf
     if (end - begin <= ncrit) {                                 // If number of bodies is less than threshold
       if (direction) {                                          //  If direction of data is from bodies to buffer
@@ -106,24 +108,24 @@ namespace exafmm {
     }                                                           // End if for leafs and Ci Cj size
   }
 
-  void addHalo(Cells & cells, Bodies & bodies) {
+  void addBuffer(Cells & cells, Bodies & bodies) {
     for (size_t i=0; i<cells.size(); i++) {
       if (cells[i].NCHILD == 0) {
         cells[i].NBODY = 0;
         for (size_t j=0; j<cells[i].listP2P.size(); j++) {
           Cell * Cj = cells[i].listP2P[j];
           for (int b=0; b<Cj->NBODY; b++) {
-            if ((std::abs(Cj->BODY[b].X[0] - cells[i].X[0]) - cells[i].R < D * cells[i].R)
-                && (std::abs(Cj->BODY[b].X[1] - cells[i].X[1]) - cells[i].R < D * cells[i].R)) {
+            if ((std::abs(Cj->BODY[b].X[0] - cells[i].X[0]) - cells[i].R < D)
+                && (std::abs(Cj->BODY[b].X[1] - cells[i].X[1]) - cells[i].R < D)) {
               Body body;
               for (int d=0; d<2; d++) body.X[d] = Cj->BODY[b].X[d];
               body.q = Cj->BODY[b].q;
               body.p = Cj->BODY[b].p;
               for (int d=0; d<2; d++) body.F[d] = Cj->BODY[b].F[d];
-              real_t x = fmax(std::abs(body.X[0] - cells[i].X[0]) - cells[i].R, -D * cells[i].R);
-              real_t y = fmax(std::abs(body.X[1] - cells[i].X[1]) - cells[i].R, -D * cells[i].R);
-              assert(x <= D * cells[i].R * 1.000001);
-              assert(y <= D * cells[i].R * 1.000001);
+              real_t x = fmax(std::abs(body.X[0] - cells[i].X[0]) - cells[i].R, -D);
+              real_t y = fmax(std::abs(body.X[1] - cells[i].X[1]) - cells[i].R, -D);
+              assert(x < D * 1.000001);
+              assert(y < D * 1.000001);
               bodies.push_back(body);
               cells[i].NBODY++;
             }
@@ -148,10 +150,12 @@ namespace exafmm {
     buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);
     buffer = jbodies;
     buildCells(&buffer[0], &jbodies[0], 0, jbodies.size(), &jcells[0], jcells, X0, R0);
+    D *= R0 / maxlevel;
     getNeighbor(&cells[0], &jcells[0]);
     bodies.clear();
     bodies.reserve(buffer.size()*10);
-    addHalo(cells, bodies);
+    addBuffer(cells, bodies);
+    std::cout << bodies.size() << std::endl;
     return cells;
   }
 }

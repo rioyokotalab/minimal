@@ -3,7 +3,7 @@ using namespace exafmm;
 
 int main(int argc, char ** argv) {
   P = atoi(argv[1]);
-  D = 0.25;
+  D = 0.5;
 
   Bodies jbodies(9);
   jbodies[0].X[0] = 8.5;

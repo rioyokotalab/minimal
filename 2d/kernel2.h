@@ -4,19 +4,19 @@
 
 namespace exafmm {
   int P;                                                        //!< Order of expansions
-  real_t D;                                                     //!< Halo size
+  real_t D;                                                     //!< Buffer size
   real_t dX[2];                                                 //!< Distance vector
   real_t theta;                                                 //!< Multipole acceptance criterion
 #pragma omp threadprivate(dX)                                   //!< Make global variables private
 
   //!< Weight of smoothing function
   inline real_t weight(Body * B, Cell * C) {
-    real_t x = fmax(std::abs(B->X[0] - C->X[0]) - C->R, -D * C->R);
-    real_t y = fmax(std::abs(B->X[1] - C->X[1]) - C->R, -D * C->R);
-    assert(x <= D * C->R * 1.000001);
-    assert(y <= D * C->R * 1.000001);
-    x /= (D*2);
-    y /= (D*2);
+    real_t x = fmax(std::abs(B->X[0] - C->X[0]) - C->R, -D);
+    real_t y = fmax(std::abs(B->X[1] - C->X[1]) - C->R, -D);
+    assert(x < D * 1.000001);
+    assert(y < D * 1.000001);
+    x /= (2*D*C->R);
+    y /= (2*D*C->R);
     real_t w = (2 + 3 * x - x * x * x) / 4;
     w *= (2 + 3 * y - y * y * y) / 4;
     return w;
