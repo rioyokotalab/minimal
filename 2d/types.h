@@ -14,6 +14,7 @@ namespace exafmm {
 
   //! Structure of bodies
   struct Body {
+    int I;                                                      //!< Index
     real_t X[2];                                                //!< Position
     real_t q;                                                   //!< Charge
     real_t p;                                                   //!< Potential

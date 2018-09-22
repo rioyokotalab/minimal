@@ -7,7 +7,7 @@ namespace exafmm {
   int maxlevel;                                                 //!< Max depth of tree
 
   //! Get bounding box of bodies
-  void getBounds(Bodies & bodies, real_t & R0, real_t * X0) {
+  void getBounds(Bodies & bodies) {
     real_t Xmin[2], Xmax[2];                                    // Min, max of domain
     for (int d=0; d<2; d++) Xmin[d] = Xmax[d] = bodies[0].X[d]; // Initialize Xmin, Xmax
     for (size_t b=0; b<bodies.size(); b++) {                    // Loop over range of bodies
@@ -118,14 +118,15 @@ namespace exafmm {
             if ((std::abs(Cj->BODY[b].X[0] - cells[i].X[0]) - cells[i].R < D)
                 && (std::abs(Cj->BODY[b].X[1] - cells[i].X[1]) - cells[i].R < D)) {
               Body body;
+              body.I = Cj->BODY[b].I;
               for (int d=0; d<2; d++) body.X[d] = Cj->BODY[b].X[d];
               body.q = Cj->BODY[b].q;
               body.p = Cj->BODY[b].p;
               for (int d=0; d<2; d++) body.F[d] = Cj->BODY[b].F[d];
               real_t x = fmin(cells[i].R - std::abs(body.X[0] - cells[i].X[0]), D);
               real_t y = fmin(cells[i].R - std::abs(body.X[1] - cells[i].X[1]), D);
-              assert(x > -D * 1.000001);
-              assert(y > -D * 1.000001);
+              assert(x > -D);
+              assert(y > -D);
               bodies.push_back(body);
               cells[i].NBODY++;
             }
@@ -140,12 +141,10 @@ namespace exafmm {
   }
 
   Cells buildTree(Bodies & bodies) {
-    real_t R0, X0[2];
-    getBounds(bodies, R0, X0);
+    getBounds(bodies);
     Cells cells(1), jcells(1);
     cells.reserve(bodies.size());
     jcells.reserve(bodies.size());
-    R0 += D * R0 * 1.000001;
     Bodies jbodies = bodies;
     Bodies buffer = bodies;
     buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);
@@ -169,7 +168,7 @@ namespace exafmm {
             Body * Bi = &Ci->BODY[bi];
             for (int bj=0; bj<Cj->NBODY; bj++) {
               Body * Bj = &Cj->BODY[bj];
-              if (std::abs(Bi->X[0] - Bj->X[0]) + std::abs(Bi->X[1] - Bj->X[1]) < 1e-6) {
+              if (Bi->I == Bj->I) {
                 Bi->p += Bj->p;
                 for (int d=0; d<2; d++) Bi->F[d] += Bj->F[d];
               }
@@ -182,12 +181,9 @@ namespace exafmm {
   }
 
   void joinBuffer(Cells & jcells, Bodies & bodies) {
-    real_t R0, X0[2];
-    getBounds(bodies, R0, X0);
+    getBounds(bodies);
     Cells cells(1);
     cells.reserve(bodies.size());
-    D /= R0 / (maxlevel + 1);
-    R0 += D * R0 * 1.000001;
     Bodies buffer = bodies;
     buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
     getNeighbor(&cells[0], &jcells[0]);

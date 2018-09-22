@@ -7,6 +7,8 @@ namespace exafmm {
   real_t D;                                                     //!< Buffer size
   real_t dX[2];                                                 //!< Distance vector
   real_t theta;                                                 //!< Multipole acceptance criterion
+  real_t R0;
+  real_t X0[2];
 #pragma omp threadprivate(dX)                                   //!< Make global variables private
 
   void P2PX(Cell * Ci, Cell * Cj) {

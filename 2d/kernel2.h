@@ -7,14 +7,18 @@ namespace exafmm {
   real_t D;                                                     //!< Buffer size
   real_t dX[2];                                                 //!< Distance vector
   real_t theta;                                                 //!< Multipole acceptance criterion
+  real_t R0;
+  real_t X0[2];
 #pragma omp threadprivate(dX)                                   //!< Make global variables private
 
   //!< Weight of smoothing function
   inline real_t weight(Body * B, Cell * C) {
     real_t x = fmin(C->R - std::abs(B->X[0] - C->X[0]), D);
     real_t y = fmin(C->R - std::abs(B->X[1] - C->X[1]), D);
-    assert(x > -D * 1.000001);
-    assert(y > -D * 1.000001);
+    if (R0 - std::abs(B->X[0] - X0[0]) < D) x = D;
+    if (R0 - std::abs(B->X[1] - X0[1]) < D) y = D;
+    assert(x > -D);
+    assert(y > -D);
     x /= D;
     y /= D;
     real_t w = (2 + 3 * x - x * x * x) / 4;
