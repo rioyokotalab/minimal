@@ -122,10 +122,10 @@ namespace exafmm {
               body.q = Cj->BODY[b].q;
               body.p = Cj->BODY[b].p;
               for (int d=0; d<2; d++) body.F[d] = Cj->BODY[b].F[d];
-              real_t x = fmax(std::abs(body.X[0] - cells[i].X[0]) - cells[i].R, -D);
-              real_t y = fmax(std::abs(body.X[1] - cells[i].X[1]) - cells[i].R, -D);
-              assert(x < D * 1.000001);
-              assert(y < D * 1.000001);
+              real_t x = fmin(cells[i].R - std::abs(body.X[0] - cells[i].X[0]), D);
+              real_t y = fmin(cells[i].R - std::abs(body.X[1] - cells[i].X[1]), D);
+              assert(x > -D * 1.000001);
+              assert(y > -D * 1.000001);
               bodies.push_back(body);
               cells[i].NBODY++;
             }
@@ -142,21 +142,56 @@ namespace exafmm {
   Cells buildTree(Bodies & bodies) {
     real_t R0, X0[2];
     getBounds(bodies, R0, X0);
-    Bodies buffer = bodies;
-    Bodies jbodies = bodies;
-    Cells cells(1),jcells(1);
+    Cells cells(1), jcells(1);
     cells.reserve(bodies.size());
     jcells.reserve(bodies.size());
+    R0 += D * R0 * 1.000001;
+    Bodies jbodies = bodies;
+    Bodies buffer = bodies;
     buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);
     buffer = jbodies;
     buildCells(&buffer[0], &jbodies[0], 0, jbodies.size(), &jcells[0], jcells, X0, R0);
-    D *= R0 / maxlevel;
+    D *= R0 / (maxlevel + 1);
     getNeighbor(&cells[0], &jcells[0]);
     bodies.clear();
-    bodies.reserve(buffer.size()*10);
+    bodies.reserve(buffer.size()*27);
     addBuffer(cells, bodies);
-    std::cout << bodies.size() << std::endl;
     return cells;
+  }
+
+  void joinBuffer(Cells & cells) {
+    for (size_t i=0; i<cells.size(); i++) {
+      Cell * Ci = &cells[i];
+      if (Ci->NCHILD == 0) {
+        for (size_t j=0; j<Ci->listP2P.size(); j++) {
+          Cell * Cj = Ci->listP2P[j];
+          for (int bi=0; bi<Ci->NBODY; bi++) {
+            Body * Bi = &Ci->BODY[bi];
+            for (int bj=0; bj<Cj->NBODY; bj++) {
+              Body * Bj = &Cj->BODY[bj];
+              if (std::abs(Bi->X[0] - Bj->X[0]) + std::abs(Bi->X[1] - Bj->X[1]) < 1e-6) {
+                Bi->p += Bj->p;
+                for (int d=0; d<2; d++) Bi->F[d] += Bj->F[d];
+              }
+            }
+          }
+        }
+      }
+      cells[i].listP2P.clear();
+    }
+  }
+
+  void joinBuffer(Cells & jcells, Bodies & bodies) {
+    real_t R0, X0[2];
+    getBounds(bodies, R0, X0);
+    Cells cells(1);
+    cells.reserve(bodies.size());
+    D /= R0 / (maxlevel + 1);
+    R0 += D * R0 * 1.000001;
+    Bodies buffer = bodies;
+    buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
+    getNeighbor(&cells[0], &jcells[0]);
+    joinBuffer(cells);
   }
 }
 

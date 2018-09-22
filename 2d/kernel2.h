@@ -11,12 +11,12 @@ namespace exafmm {
 
   //!< Weight of smoothing function
   inline real_t weight(Body * B, Cell * C) {
-    real_t x = fmax(std::abs(B->X[0] - C->X[0]) - C->R, -D);
-    real_t y = fmax(std::abs(B->X[1] - C->X[1]) - C->R, -D);
-    assert(x < D * 1.000001);
-    assert(y < D * 1.000001);
-    x /= (2*D*C->R);
-    y /= (2*D*C->R);
+    real_t x = fmin(C->R - std::abs(B->X[0] - C->X[0]), D);
+    real_t y = fmin(C->R - std::abs(B->X[1] - C->X[1]), D);
+    assert(x > -D * 1.000001);
+    assert(y > -D * 1.000001);
+    x /= D;
+    y /= D;
     real_t w = (2 + 3 * x - x * x * x) / 4;
     w *= (2 + 3 * y - y * y * y) / 4;
     return w;

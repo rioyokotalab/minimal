@@ -6,9 +6,9 @@
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 10000;                                  // Number of bodies
+  const int numBodies = 2000;                                   // Number of bodies
   P = 30;                                                       // Order of expansions
-  D = 0.000001;                                                      // Buffer size
+  D = 0.1;                                                      // Buffer size
   ncrit = 32;                                                   // Number of bodies per leaf cell
   theta = 0.2;                                                  // Multipole acceptance criterion
 
@@ -35,6 +35,7 @@ int main(int argc, char ** argv) {
 
   //! Build tree
   start("Build tree");                                          // Start timer
+  Bodies bodies2 = bodies;
   Cells cells = buildTree(bodies);                              // Build tree
   stop("Build tree");                                           // Stop timer
 
@@ -48,17 +49,20 @@ int main(int argc, char ** argv) {
   start("L2L & L2P");                                           // Start timer
   downwardPass(cells);                                          // Downward pass for L2L, L2P
   stop("L2L & L2P");                                            // Stop timer
+  Bodies jbodies = bodies2;
+  joinBuffer(cells, jbodies);
+  bodies = jbodies;
 
   //! Direct N-Body
   start("Direct N-Body");                                       // Start timer
-  const int numTargets = 10;                                    // Number of targets for checking answer
-  Bodies jbodies = bodies;                                      // Save bodies in jbodies
+  const int numTargets = 8;                                     // Number of targets for checking answer
   int stride = bodies.size() / numTargets;                      // Stride of sampling
   for (int b=0; b<numTargets; b++) {                            // Loop over target samples
     bodies[b] = bodies[b*stride];                               //  Sample targets
   }                                                             // End loop over target samples
   bodies.resize(numTargets);                                    // Resize bodies
-  Bodies bodies2 = bodies;                                      // Backup bodies
+  jbodies = bodies2;                                            // Save bodies in jbodies
+  bodies2 = bodies;                                             // Backup bodies
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
     bodies[b].p = 0;                                            //  Clear potential
     for (int d=0; d<2; d++) bodies[b].F[d] = 0;                 //  Clear force
@@ -68,12 +72,12 @@ int main(int argc, char ** argv) {
 
   //! Verify result
   double pDif = 0, pNrm = 0, FDif = 0, FNrm = 0;
-  for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies & bodies2
+  for (size_t b=0; b<bodies2.size(); b++) {                      // Loop over bodies & bodies2
     pDif += (bodies[b].p - bodies2[b].p) * (bodies[b].p - bodies2[b].p);// Difference of potential
-    pNrm += bodies2[b].p * bodies2[b].p;                        //  Value of potential
+    pNrm += bodies[b].p * bodies[b].p;                           //  Value of potential
     FDif += (bodies[b].F[0] - bodies2[b].F[0]) * (bodies[b].F[0] - bodies2[b].F[0])// Difference of force
       + (bodies[b].F[0] - bodies2[b].F[0]) * (bodies[b].F[0] - bodies2[b].F[0]);// Difference of force
-    FNrm += bodies2[b].F[0] * bodies2[b].F[0] + bodies2[b].F[1] * bodies2[b].F[1];//  Value of force
+    FNrm += bodies[b].F[0] * bodies[b].F[0] + bodies[b].F[1] * bodies[b].F[1];//  Value of force
   }                                                             // End loop over bodies & bodies2
   printf("--- %-16s ------------\n", "FMM vs. direct");         // Print message
   printf("%-20s : %8.5e s\n","Rel. L2 Error (p)", sqrt(pDif/pNrm));// Print potential error
