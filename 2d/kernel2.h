@@ -17,8 +17,8 @@ namespace exafmm {
     real_t y = fmin(C->R - std::abs(B->X[1] - C->X[1]), D);
     if (R0 - std::abs(B->X[0] - X0[0]) < D) x = D;
     if (R0 - std::abs(B->X[1] - X0[1]) < D) y = D;
-    assert(x > -D);
-    assert(y > -D);
+    assert(x >= -D);
+    assert(y >= -D);
     x /= D;
     y /= D;
     real_t w = (2 + 3 * x - x * x * x) / 4;

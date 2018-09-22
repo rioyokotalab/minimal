@@ -4,6 +4,9 @@ using namespace exafmm;
 int main(int argc, char ** argv) {
   P = atoi(argv[1]);
   D = 0.5;
+  R0 = 12;
+  X0[0] = 0;
+  X0[1] = 0;
 
   Bodies jbodies(9);
   jbodies[0].X[0] = 8.5;
