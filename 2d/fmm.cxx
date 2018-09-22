@@ -6,10 +6,10 @@
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 1000;                                   // Number of bodies
+  const int numBodies = 10000;                                  // Number of bodies
   P = 30;                                                       // Order of expansions
   D = 0.25;                                                     // Buffer size
-  ncrit = 32;                                                   // Number of bodies per leaf cell
+  ncrit = 64;                                                   // Number of bodies per leaf cell
   theta = 0.2;                                                  // Multipole acceptance criterion
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
