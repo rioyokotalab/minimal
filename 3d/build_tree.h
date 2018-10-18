@@ -38,6 +38,7 @@ namespace exafmm {
         for (int i=begin; i<end; i++) {                         //   Loop over bodies in cell
           for (int d=0; d<3; d++) buffer[i].X[d] = bodies[i].X[d];//  Copy bodies coordinates to buffer
           buffer[i].q = bodies[i].q;                            //    Copy bodies source to buffer
+          buffer[i].i = bodies[i].i;
         }                                                       //   End loop over bodies in cell
       }                                                         //  End if for direction of data
       return;                                                   //  Return without recursion
@@ -65,6 +66,7 @@ namespace exafmm {
       int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);// Which octant body belongs to`
       for (int d=0; d<3; d++) buffer[counter[octant]].X[d] = bodies[i].X[d];// Permute bodies coordinates out-of-place according to octant
       buffer[counter[octant]].q = bodies[i].q;                  //  Permute bodies sources out-of-place according to octant
+      buffer[counter[octant]].i = bodies[i].i;
       counter[octant]++;                                        //  Increment body count in octant
     }                                                           // End loop over bodies
     //! Loop over children and recurse

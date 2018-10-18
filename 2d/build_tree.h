@@ -200,6 +200,7 @@ namespace exafmm {
     buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
     getNeighbor(&cells[0], &jcells[0]);
     joinBuffer(cells);
+    return cells;                                               // Return pointer of root cell
   }
 }
 

@@ -7,16 +7,23 @@
 
 namespace exafmm {
   // Basic type definitions
-  typedef double real_t;                                        //!< Floating point type
+  typedef float real_t;                                        //!< Floating point type
   typedef std::complex<real_t> complex_t;                       //!< Complex type
 
   //! Structure of bodies
   struct Body {
+    int i;
     real_t X[3];                                                //!< Position
     real_t q;                                                   //!< Charge
     real_t p;                                                   //!< Potential
     real_t F[3];                                                //!< Force
+    bool operator<(const Body& B) {
+      return i < B.i;
+    }
   };
+  bool compare(const Body & l, const Body & r) {
+    return l.i < r.i;
+  }
   typedef std::vector<Body> Bodies;                             //!< Vector of bodies
 
   //! Structure of cells

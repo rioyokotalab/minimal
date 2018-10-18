@@ -135,16 +135,14 @@ namespace exafmm {
       real_t az = 0;
       for (int j=0; j<nj; j++) {
         for (int d=0; d<3; d++) dX[d] = Bi[i].X[d] - Bj[j].X[d];
-        real_t R2 = norm(dX);
-        if (R2 != 0) {
-          real_t invR2 = 1.0 / R2;
-          real_t invR = Bj[j].q * sqrt(invR2);
-          for (int d=0; d<3; d++) dX[d] *= invR2 * invR;
-          pot += invR;
-          ax += dX[0];
-          ay += dX[1];
-          az += dX[2];
-        }
+        real_t R2 = norm(dX) + 1e-6;
+        real_t invR2 = 1.0 / R2;
+        real_t invR = Bj[j].q * sqrt(invR2);
+        for (int d=0; d<3; d++) dX[d] *= invR2 * invR;
+        pot += invR;
+        ax += dX[0];
+        ay += dX[1];
+        az += dX[2];
       }
       Bi[i].p += pot;
       Bi[i].F[0] -= ax;

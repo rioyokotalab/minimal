@@ -11,13 +11,11 @@ all:
 
 kernel: kernel.o
 	$(CXX) $? -o $@
-	./kernel 10
-	./kernel 20
-	./kernel 30
+	./kernel 10 10
 
 fmm: fmm.o
 	$(CXX) $? -o $@
-	./fmm
+	./fmm 10 10
 
 clean:
 	$(RM) ./*.o ./kernel ./fmm
