@@ -4,13 +4,36 @@
 
 namespace exafmm {
   int P;                                                        //!< Order of expansions
+  real_t D;                                                     //!< Buffer size
   real_t dX[2];                                                 //!< Distance vector
+  real_t theta;                                                 //!< Multipole acceptance criterion
+  real_t R0;
+  real_t X0[2];
   real_t Xperiodic[2];                                          //!< Periodic coordinate offset
 #pragma omp threadprivate(dX,Xperiodic)                         //!< Make global variables private
 
-  //!< L2 norm of vector X
-  inline real_t norm(real_t * X) {
-    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
+  void P2PX(Cell * Ci, Cell * Cj) {
+    Body * Bi = Ci->BODY;                                       // Target body pointer
+    Body * Bj = Cj->BODY;                                       // Source body pointer
+    for (int i=0; i<Ci->NBODY; i++) {                           // Loop over target bodies
+      real_t p = 0, F[2] = {0, 0};                              //  Initialize potential, force
+      for (int j=0; j<Cj->NBODY; j++) {                         //  Loop over source bodies
+        for (int d=0; d<2; d++) dX[d] = Bi[i].X[d] - Bj[j].X[d] - Xperiodic[d];//   Calculate distance vector
+        real_t R2 = norm(dX);                                   //   Calculate distance squared
+        if (R2 != 0) {                                          //   If not the same point
+          real_t invR = 1 / sqrt(R2);                           //    1 / R
+          real_t logR = Bj[j].q * log(invR);                    //    q * log(R)
+          p += logR;                                       //    Potential
+          for (int d=0; d<2; d++) F[d] += dX[d] * Bj[j].q / R2; //    Force
+        }                                                       //   End if for same point
+      }                                                         //  End loop over source points
+#pragma omp atomic                                              //  OpenMP atomic add
+      Bi[i].p += p;                                             //  Accumulate potential
+      for (int d=0; d<2; d++) {                                 //  Loop over dimensions
+#pragma omp atomic                                              //   OpenMP atomic add
+        Bi[i].F[d] -= F[d];                                     //   Accumulate force
+      }                                                         //  End loop over dimensions
+    }                                                           // End loop over target bodies
   }
 
   //!< P2P kernel between cells Ci and Cj

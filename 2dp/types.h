@@ -1,5 +1,6 @@
 #ifndef types_h
 #define types_h
+#include <cassert>
 #include <complex>
 #include <cstdio>
 #include <cstdlib>
@@ -12,6 +13,7 @@ namespace exafmm {
 
   //! Structure of bodies
   struct Body {
+    int I;
     real_t X[2];                                                //!< Position
     real_t q;                                                   //!< Charge
     real_t p;                                                   //!< Potential
@@ -33,6 +35,11 @@ namespace exafmm {
     std::vector<complex_t> L;                                   //!< Local expansion coefficients
   };
   typedef std::vector<Cell> Cells;                              //!< Vector of cells
+
+  //!< L2 norm of vector X
+  inline real_t norm(real_t * X) {
+    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
+  }
 }
 
 #endif

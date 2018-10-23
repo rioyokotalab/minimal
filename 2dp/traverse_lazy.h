@@ -4,7 +4,6 @@
 
 namespace exafmm {
   int images;                                                   //!< Number of periodic image sublevels
-  real_t theta;                                                 //!< Multipole acceptance criterion
 
   //! Recursive call to post-order tree traversal for upward pass
   void upwardPass(Cell * Ci) {

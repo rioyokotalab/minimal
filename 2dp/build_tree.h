@@ -92,7 +92,7 @@ namespace exafmm {
   //! Recursive call to dual tree traversal for list construction
   void getNeighbor(Cell * Ci, Cell * Cj) {
     real_t dX[2];
-    for (int d=0; d<2; d++) dX[d] = Ci->X[d] - Cj->X[d];        // Distance vector from source to target
+    for (int d=0; d<2; d++) dX[d] = Ci->X[d] - Cj->X[d] - Xperiodic[d]; // Distance vector from source to target
     real_t R2 = norm(dX) * theta * theta;                       // Scalar distance squared
     if (R2 > (Ci->R + Cj->R) * (Ci->R + Cj->R)) {               // If distance is far enough
     } else if (Ci->NCHILD == 0 && Cj->NCHILD == 0) {            // Else if both cells are leafs
@@ -115,11 +115,11 @@ namespace exafmm {
         for (size_t j=0; j<cells[i].listP2P.size(); j++) {
           Cell * Cj = cells[i].listP2P[j];
           for (int b=0; b<Cj->NBODY; b++) {
-            if ((std::abs(Cj->BODY[b].X[0] - cells[i].X[0]) - cells[i].R < D)
-                && (std::abs(Cj->BODY[b].X[1] - cells[i].X[1]) - cells[i].R < D)) {
+            if ((std::abs(Cj->BODY[b].X[0] + Xperiodic[0] - cells[i].X[0]) - cells[i].R < D)
+                && (std::abs(Cj->BODY[b].X[1] + Xperiodic[1] - cells[i].X[1]) - cells[i].R < D)) {
               Body body;
               body.I = Cj->BODY[b].I;
-              for (int d=0; d<2; d++) body.X[d] = Cj->BODY[b].X[d];
+              for (int d=0; d<2; d++) body.X[d] = Cj->BODY[b].X[d] + Xperiodic[d];
               body.q = Cj->BODY[b].q;
               body.p = Cj->BODY[b].p;
               for (int d=0; d<2; d++) body.F[d] = Cj->BODY[b].F[d];
@@ -140,7 +140,7 @@ namespace exafmm {
     }
   }
 
-  Cells buildTree(Bodies & bodies) {
+  Cells buildTree(Bodies & bodies, real_t cycle) {
     getBounds(bodies);                                          // Get bounding box from bodies
     Cells cells(1), jcells(1);                                  // Vector of cells
     cells.reserve(bodies.size());                               // Reserve memory space
@@ -162,11 +162,17 @@ namespace exafmm {
 #endif
     buffer = jbodies;
     buildCells(&buffer[0], &jbodies[0], 0, jbodies.size(), &jcells[0], jcells, X0, R0);
-    D *= R0 / (maxlevel + 1);
-    getNeighbor(&cells[0], &jcells[0]);
     bodies.clear();
     bodies.reserve(buffer.size()*27);
-    addBuffer(cells, bodies);
+    D *= R0 / (maxlevel + 1);
+    for (int ix=-1; ix<=1; ix++) {
+      for (int iy=-1; iy<=1; iy++) {
+        Xperiodic[0] = ix * cycle;
+        Xperiodic[1] = iy * cycle;
+        getNeighbor(&cells[0], &jcells[0]);
+        addBuffer(cells, bodies);
+      }
+    }
     return cells;
   }
 
@@ -200,7 +206,6 @@ namespace exafmm {
     buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
     getNeighbor(&cells[0], &jcells[0]);
     joinBuffer(cells);
-    return cells;                                               // Return pointer of root cell
   }
 }
 
