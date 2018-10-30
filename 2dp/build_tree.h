@@ -5,6 +5,7 @@
 namespace exafmm {
   int ncrit;                                                    //!< Number of bodies per leaf cell
   int maxlevel;                                                 //!< Max depth of tree
+  int images;
 
   //! Get bounding box of bodies
   void getBounds(Bodies & bodies) {
@@ -165,8 +166,12 @@ namespace exafmm {
     bodies.clear();
     bodies.reserve(buffer.size()*27);
     D *= R0 / (maxlevel + 1);
-    for (int ix=-1; ix<=1; ix++) {
-      for (int iy=-1; iy<=1; iy++) {
+    int prange = 0;
+    for (int i=0; i<images; i++) {
+      prange += int(powf(3.,i));
+    }
+    for (int ix=-prange; ix<=prange; ix++) {
+      for (int iy=-prange; iy<=prange; iy++) {
         Xperiodic[0] = ix * cycle;
         Xperiodic[1] = iy * cycle;
         getNeighbor(&cells[0], &jcells[0]);
@@ -198,13 +203,23 @@ namespace exafmm {
     }
   }
 
-  void joinBuffer(Cells & jcells, Bodies & bodies) {
+  void joinBuffer(Cells & jcells, Bodies & bodies, real_t cycle) {
     getBounds(bodies);
     Cells cells(1);
     cells.reserve(bodies.size());
     Bodies buffer = bodies;
     buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
-    getNeighbor(&cells[0], &jcells[0]);
+    int prange = 0;
+    for (int i=0; i<images; i++) {
+      prange += int(powf(3.,i));
+    }
+    for (int ix=-prange; ix<=prange; ix++) {
+      for (int iy=-prange; iy<=prange; iy++) {
+        Xperiodic[0] = ix * cycle;
+        Xperiodic[1] = iy * cycle;
+        getNeighbor(&cells[0], &jcells[0]);
+      }
+    }
     joinBuffer(cells);
   }
 }

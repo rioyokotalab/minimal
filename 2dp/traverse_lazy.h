@@ -3,7 +3,6 @@
 #include "types.h"
 
 namespace exafmm {
-  int images;                                                   //!< Number of periodic image sublevels
 
   //! Recursive call to post-order tree traversal for upward pass
   void upwardPass(Cell * Ci) {
@@ -156,7 +155,7 @@ namespace exafmm {
       for (int iy=-prange; iy<=prange; iy++) {                  //  Loop over y periodic direction
         Xperiodic[0] = ix * cycle;                              //   Coordinate shift for x periodic direction
         Xperiodic[1] = iy * cycle;                              //   Coordinate shift for y periodic direction
-        P2P(Ci, Cj);                                            //   Evaluate P2P kernel
+        P2PX(Ci, Cj);                                           //   Evaluate P2P kernel
       }                                                         //  End loop over y periodic direction
     }                                                           // End loop over x periodic direction
   }

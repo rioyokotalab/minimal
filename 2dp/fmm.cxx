@@ -3,6 +3,7 @@
 #include "timer.h"
 //#include "traverse_eager.h"
 #include "traverse_lazy.h"
+#include <iostream>
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
@@ -10,9 +11,9 @@ int main(int argc, char ** argv) {
   const real_t cycle = 2 * M_PI;                                // Cycle of periodic boundary condition
   P = 30;                                                       // Order of expansions
   D = 0.25;                                                     // Buffer size
-  ncrit = 8;                                                    // Number of bodies per leaf cell
+  ncrit = 64;                                                   // Number of bodies per leaf cell
   theta = 0.2;                                                  // Multipole acceptance criterion
-  images = 3;                                                   // 3^images * 3^images * 3^images periodic images
+  images = 0;                                                   // 3^images * 3^images * 3^images periodic images
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodies
@@ -52,7 +53,7 @@ int main(int argc, char ** argv) {
   downwardPass(cells);                                          // Downward pass for L2L, L2P
   stop("L2L & L2P");                                            // Stop timer
   Bodies jbodies = bodies2;
-  joinBuffer(cells, jbodies);
+  joinBuffer(cells, jbodies, cycle);
   bodies = jbodies;
 
   // Direct N-Body

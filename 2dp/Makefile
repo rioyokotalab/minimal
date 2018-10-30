@@ -17,6 +17,7 @@ kernel: kernel.o
 
 fmm: fmm.o
 	$(CXX) $? -o $@
+	./fmm
 
 clean:
 	$(RM) ./*.o ./kernel ./fmm
