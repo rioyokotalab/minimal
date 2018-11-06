@@ -22,6 +22,7 @@ int main(int argc, char ** argv) {
   real_t average = 0;                                           // Average charge
   srand48(0);                                                   // Set seed for random number generator
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
+    bodies[b].I = b;                                            //  Body index
     for (int d=0; d<2; d++) {                                   //  Loop over dimension
       bodies[b].X[d] = drand48() * 2 * M_PI - M_PI;             //   Initialize positions
     }                                                           //  End loop over dimension
