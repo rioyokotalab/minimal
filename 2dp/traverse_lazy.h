@@ -45,6 +45,7 @@ namespace exafmm {
 
   //! Evaluate M2L, P2P kernels
   void evaluate(Cells & cells) {
+#pragma omp parallel for schedule(dynamic)
     for (size_t i=0; i<cells.size(); i++) {                     // Loop over cells
       for (size_t j=0; j<cells[i].listM2L.size(); j++) {        //  Loop over M2L list
         M2L(&cells[i],cells[i].listM2L[j]);                     //   M2L kernel
