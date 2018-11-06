@@ -4,7 +4,7 @@
 
 namespace exafmm {
   //! Get bounding box of bodies
-  void getBounds(Bodies & bodies, real_t & R0, real_t * X0) {
+  void getBounds(Bodies & bodies) {
     real_t Xmin[2], Xmax[2];                                    // Min, max of domain
     for (int d=0; d<2; d++) Xmin[d] = Xmax[d] = bodies[0].X[d]; // Initialize Xmin, Xmax
     for (size_t b=0; b<bodies.size(); b++) {                    // Loop over range of bodies
@@ -30,6 +30,7 @@ namespace exafmm {
     cell->NCHILD = 0;                                           // Initialize counter for child cells
     for (int d=0; d<2; d++) cell->X[d] = X[d];                  // Center position of cell
     cell->R = R / (1 << level);                                 // Cell radius
+    maxlevel = std::max(maxlevel, level);
     //! If cell is a leaf
     if (end - begin <= ncrit) {                                 // If number of bodies is less than threshold
       if (direction) {                                          //  If direction of data is from bodies to buffer
@@ -85,14 +86,117 @@ namespace exafmm {
     }                                                           // End loop over children
   }
 
+  //! Recursive call to dual tree traversal for list construction
+  void getNeighbor(Cell * Ci, Cell * Cj) {
+    real_t dX[2];
+    for (int d=0; d<2; d++) dX[d] = Ci->X[d] - Cj->X[d];        // Distance vector from source to target
+    real_t R2 = norm(dX) * theta * theta;                       // Scalar distance squared
+    if (R2 > (Ci->R + Cj->R) * (Ci->R + Cj->R)) {               // If distance is far enough
+    } else if (Ci->NCHILD == 0 && Cj->NCHILD == 0) {            // Else if both cells are leafs
+      Ci->listP2P.push_back(Cj);                                //  Add to P2P list
+    } else if (Cj->NCHILD == 0 || (Ci->R >= Cj->R && Ci->NCHILD != 0)) {// Else if Cj is leaf or Ci is larger
+      for (Cell * ci=Ci->CHILD; ci!=Ci->CHILD+Ci->NCHILD; ci++) {// Loop over Ci's children
+        getNeighbor(ci, Cj);                                    //   Recursive call to target child cells
+      }                                                         //  End loop over Ci's children
+    } else {                                                    // Else if Ci is leaf or Cj is larger
+      for (Cell * cj=Cj->CHILD; cj!=Cj->CHILD+Cj->NCHILD; cj++) {//  Loop over Cj's children
+        getNeighbor(Ci, cj);                                    //   Recursive call to source child cells
+      }                                                         //  End loop over Cj's children
+    }                                                           // End if for leafs and Ci Cj size
+  }
+
+  void addBuffer(Cells & cells, Bodies & bodies) {
+    for (size_t i=0; i<cells.size(); i++) {
+      if (cells[i].NCHILD == 0) {
+        cells[i].NBODY = 0;
+        for (size_t j=0; j<cells[i].listP2P.size(); j++) {
+          Cell * Cj = cells[i].listP2P[j];
+          for (int b=0; b<Cj->NBODY; b++) {
+            if ((std::abs(Cj->BODY[b].X[0] - cells[i].X[0]) - cells[i].R < D)
+                && (std::abs(Cj->BODY[b].X[1] - cells[i].X[1]) - cells[i].R < D)) {
+              Body body;
+              body.I = Cj->BODY[b].I;
+              for (int d=0; d<2; d++) body.X[d] = Cj->BODY[b].X[d];
+              body.q = Cj->BODY[b].q;
+              body.p = Cj->BODY[b].p;
+              for (int d=0; d<2; d++) body.F[d] = Cj->BODY[b].F[d];
+              real_t x = fmin(cells[i].R - std::abs(body.X[0] - cells[i].X[0]), D);
+              real_t y = fmin(cells[i].R - std::abs(body.X[1] - cells[i].X[1]), D);
+              assert(x > -D);
+              assert(y > -D);
+              bodies.push_back(body);
+              cells[i].NBODY++;
+            }
+          }
+        }
+        cells[i].BODY = &bodies.back() - cells[i].NBODY + 1;
+      } else {
+        cells[i].NBODY = 0;
+      }
+      cells[i].listP2P.clear();
+    }
+  }
+
   Cells buildTree(Bodies & bodies) {
-    real_t R0, X0[2];                                           // Radius and center root cell
-    getBounds(bodies, R0, X0);                                  // Get bounding box from bodies
-    Bodies buffer = bodies;                                     // Copy bodies to buffer
-    Cells cells(1);                                             // Vector of cells
-    cells.reserve(bodies.size());                               // Reserve memory space
-    buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);// Build tree recursively
-    return cells;                                               // Return pointer of root cell
+    getBounds(bodies);
+    Cells cells(1), jcells(1);
+    cells.reserve(bodies.size());
+    jcells.reserve(bodies.size());
+    Bodies jbodies = bodies;
+    Bodies buffer = bodies;
+    buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);
+#if 0
+    for (size_t i=0; i<cells.size(); i++) {
+      Cell Ci = cells[i];
+      if (Ci.NCHILD == 0) {
+        std::cout << i << " " << Ci.X[0] << " " << Ci.X[1] << " " << Ci.R <<  std::endl;
+        for (int b=0; b<Ci.NBODY; b++) {
+          Body Bi = Ci.BODY[b];
+          std::cout << i << " " << b << " " << Bi.X[0] << " " << Bi.X[1] << std::endl;
+        }
+      }
+    }
+#endif
+    buffer = jbodies;
+    buildCells(&buffer[0], &jbodies[0], 0, jbodies.size(), &jcells[0], jcells, X0, R0);
+    D *= R0 / (maxlevel + 1);
+    getNeighbor(&cells[0], &jcells[0]);
+    bodies.clear();
+    bodies.reserve(buffer.size()*27);
+    addBuffer(cells, bodies);
+    return cells;
+  }
+
+  void joinBuffer(Cells & cells) {
+    for (size_t i=0; i<cells.size(); i++) {
+      Cell * Ci = &cells[i];
+      if (Ci->NCHILD == 0) {
+        for (size_t j=0; j<Ci->listP2P.size(); j++) {
+          Cell * Cj = Ci->listP2P[j];
+          for (int bi=0; bi<Ci->NBODY; bi++) {
+            Body * Bi = &Ci->BODY[bi];
+            for (int bj=0; bj<Cj->NBODY; bj++) {
+              Body * Bj = &Cj->BODY[bj];
+              if (Bi->I == Bj->I) {
+                Bi->p += Bj->p;
+                for (int d=0; d<2; d++) Bi->F[d] += Bj->F[d];
+              }
+            }
+          }
+        }
+      }
+      cells[i].listP2P.clear();
+    }
+  }
+
+  void joinBuffer(Cells & jcells, Bodies & bodies) {
+    getBounds(bodies);
+    Cells cells(1);
+    cells.reserve(bodies.size());
+    Bodies buffer = bodies;
+    buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
+    getNeighbor(&cells[0], &jcells[0]);
+    joinBuffer(cells);
   }
 }
 

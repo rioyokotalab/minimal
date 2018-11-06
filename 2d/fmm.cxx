@@ -1,18 +1,15 @@
 #include "build_tree.h"
-#include "kernel.h"
+#include "kernel2.h"
 #include "timer.h"
-#if EXAFMM_EAGER
-#include "traverse_eager.h"
-#elif EXAFMM_LAZY
-#include "traverse_lazy.h"
-#endif
+#include "traverse.h"
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 100000;                                 // Number of bodies
-  P = 10;                                                       // Order of expansions
-  ncrit = 8;                                                    // Number of bodies per leaf cell
-  theta = 0.4;                                                  // Multipole acceptance criterion
+  const int numBodies = 10000;                                  // Number of bodies
+  P = 30;                                                       // Order of expansions
+  D = 0.25;                                                     // Buffer size
+  ncrit = 64;                                                   // Number of bodies per leaf cell
+  theta = 0.2;                                                  // Multipole acceptance criterion
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodie
@@ -21,6 +18,7 @@ int main(int argc, char ** argv) {
   real_t average = 0;                                           // Average charge
   srand48(0);                                                   // Set seed for random number generator
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
+    bodies[b].I = b;                                            //  Body index
     for (int d=0; d<2; d++) {                                   //  Loop over dimension
       bodies[b].X[d] = drand48() * 2 * M_PI - M_PI;             //   Initialize positions
     }                                                           //  End loop over dimension
@@ -37,6 +35,7 @@ int main(int argc, char ** argv) {
 
   //! Build tree
   start("Build tree");                                          // Start timer
+  Bodies bodies2 = bodies;
   Cells cells = buildTree(bodies);                              // Build tree
   stop("Build tree");                                           // Stop timer
 
@@ -50,17 +49,20 @@ int main(int argc, char ** argv) {
   start("L2L & L2P");                                           // Start timer
   downwardPass(cells);                                          // Downward pass for L2L, L2P
   stop("L2L & L2P");                                            // Stop timer
+  Bodies jbodies = bodies2;
+  joinBuffer(cells, jbodies);
+  bodies = jbodies;
 
   //! Direct N-Body
   start("Direct N-Body");                                       // Start timer
-  const int numTargets = 10;                                    // Number of targets for checking answer
-  Bodies jbodies = bodies;                                      // Save bodies in jbodies
+  const int numTargets = std::min(100,int(bodies.size()));           // Number of targets for checking answer
   int stride = bodies.size() / numTargets;                      // Stride of sampling
   for (int b=0; b<numTargets; b++) {                            // Loop over target samples
     bodies[b] = bodies[b*stride];                               //  Sample targets
   }                                                             // End loop over target samples
   bodies.resize(numTargets);                                    // Resize bodies
-  Bodies bodies2 = bodies;                                      // Backup bodies
+  jbodies = bodies2;                                            // Save bodies in jbodies
+  bodies2 = bodies;                                             // Backup bodies
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
     bodies[b].p = 0;                                            //  Clear potential
     for (int d=0; d<2; d++) bodies[b].F[d] = 0;                 //  Clear force
@@ -70,12 +72,12 @@ int main(int argc, char ** argv) {
 
   //! Verify result
   double pDif = 0, pNrm = 0, FDif = 0, FNrm = 0;
-  for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies & bodies2
+  for (size_t b=0; b<bodies2.size(); b++) {                      // Loop over bodies & bodies2
     pDif += (bodies[b].p - bodies2[b].p) * (bodies[b].p - bodies2[b].p);// Difference of potential
-    pNrm += bodies2[b].p * bodies2[b].p;                        //  Value of potential
+    pNrm += bodies[b].p * bodies[b].p;                           //  Value of potential
     FDif += (bodies[b].F[0] - bodies2[b].F[0]) * (bodies[b].F[0] - bodies2[b].F[0])// Difference of force
       + (bodies[b].F[0] - bodies2[b].F[0]) * (bodies[b].F[0] - bodies2[b].F[0]);// Difference of force
-    FNrm += bodies2[b].F[0] * bodies2[b].F[0] + bodies2[b].F[1] * bodies2[b].F[1];//  Value of force
+    FNrm += bodies[b].F[0] * bodies[b].F[0] + bodies[b].F[1] * bodies[b].F[1];//  Value of force
   }                                                             // End loop over bodies & bodies2
   printf("--- %-16s ------------\n", "FMM vs. direct");         // Print message
   printf("%-20s : %8.5e s\n","Rel. L2 Error (p)", sqrt(pDif/pNrm));// Print potential error
