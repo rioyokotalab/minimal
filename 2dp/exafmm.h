@@ -12,6 +12,7 @@ namespace exafmm {
 
   //! Structure of bodies
   struct Body {
+    int I;
     real_t X[2];                                                //!< Position
     real_t q;                                                   //!< Charge
     real_t p;                                                   //!< Potential
@@ -27,17 +28,19 @@ namespace exafmm {
     Body * BODY;                                                //!< Pointer of first body
     real_t X[2];                                                //!< Cell center
     real_t R;                                                   //!< Cell radius
-#if EXAFMM_LAZY
     std::vector<Cell*> listM2L;                                 //!< M2L interaction list
     std::vector<Cell*> listP2P;                                 //!< P2P interaction list
     std::vector<int> periodicM2L;                               //!< M2L periodic index
     std::vector<int> periodicP2P;                               //!< P2P periodic index
-#endif
     std::vector<complex_t> M;                                   //!< Multipole expansion coefficients
     std::vector<complex_t> L;                                   //!< Local expansion coefficients
   };
   typedef std::vector<Cell> Cells;                              //!< Vector of cells
 
+  //!< L2 norm of vector X
+  inline real_t norm(real_t * X) {
+    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
+  }
   //! Global variables
   int P;                                                        //!< Order of expansions
   int ncrit;                                                    //!< Number of bodies per leaf cell

@@ -1,15 +1,16 @@
 #include "build_tree.h"
-#include "kernel2.h"
+#include "kernel0.h"
 #include "timer.h"
 #include "traverse.h"
+#include <iostream>
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 10000;                                  // Number of bodies
+  const int numBodies = 300;                                  // Number of bodies
   P = 30;                                                       // Order of expansions
-  D = 0.25;                                                     // Buffer size
+  D = 0.76;                                                     // Buffer size
   ncrit = 64;                                                   // Number of bodies per leaf cell
-  theta = 0.2;                                                  // Multipole acceptance criterion
+  theta = 0.0;                                                  // Multipole acceptance criterion
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodie
@@ -19,6 +20,7 @@ int main(int argc, char ** argv) {
   srand48(0);                                                   // Set seed for random number generator
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
     bodies[b].I = b;                                            //  Body index
+    bodies[b].listp.resize(numBodies);
     for (int d=0; d<2; d++) {                                   //  Loop over dimension
       bodies[b].X[d] = drand48() * 2 * M_PI - M_PI;             //   Initialize positions
     }                                                           //  End loop over dimension
@@ -38,7 +40,9 @@ int main(int argc, char ** argv) {
   Bodies bodies2 = bodies;
   Cells cells = buildTree(bodies);                              // Build tree
   stop("Build tree");                                           // Stop timer
-
+  for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
+    bodies[b].listp.resize(numBodies);
+  }
   //! FMM evaluation
   start("P2M & M2M");                                           // Start timer
   upwardPass(cells);                                            // Upward pass for P2M, M2M
@@ -49,6 +53,10 @@ int main(int argc, char ** argv) {
   start("L2L & L2P");                                           // Start timer
   downwardPass(cells);                                          // Downward pass for L2L, L2P
   stop("L2L & L2P");                                            // Stop timer
+  std::cout << bodies[0].listp.size() << std::endl;
+  for (size_t i=0; i<bodies[0].listp.size(); i++) {
+    //std::cout << i << " " << bodies[0].listp[i] << std::endl;
+  }
   Bodies jbodies = bodies2;
   joinBuffer(cells, jbodies);
   bodies = jbodies;
@@ -71,16 +79,13 @@ int main(int argc, char ** argv) {
   stop("Direct N-Body");                                        // Stop timer
 
   //! Verify result
-  double pDif = 0, pNrm = 0, FDif = 0, FNrm = 0;
+  double pDif = 0, pNrm = 0;
   for (size_t b=0; b<bodies2.size(); b++) {                      // Loop over bodies & bodies2
     pDif += (bodies[b].p - bodies2[b].p) * (bodies[b].p - bodies2[b].p);// Difference of potential
+    //if (pDif > 1e-8) std::cout << bodies[b].I << " " << bodies[b].p << " " << bodies2[b].p << std::endl;
     pNrm += bodies[b].p * bodies[b].p;                           //  Value of potential
-    FDif += (bodies[b].F[0] - bodies2[b].F[0]) * (bodies[b].F[0] - bodies2[b].F[0])// Difference of force
-      + (bodies[b].F[0] - bodies2[b].F[0]) * (bodies[b].F[0] - bodies2[b].F[0]);// Difference of force
-    FNrm += bodies[b].F[0] * bodies[b].F[0] + bodies[b].F[1] * bodies[b].F[1];//  Value of force
   }                                                             // End loop over bodies & bodies2
   printf("--- %-16s ------------\n", "FMM vs. direct");         // Print message
   printf("%-20s : %8.5e s\n","Rel. L2 Error (p)", sqrt(pDif/pNrm));// Print potential error
-  printf("%-20s : %8.5e s\n","Rel. L2 Error (F)", sqrt(FDif/FNrm));// Print force error
   return 0;
 }

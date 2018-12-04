@@ -1,6 +1,7 @@
 #ifndef buildtree_h
 #define buildtree_h
 #include "exafmm.h"
+#include <iostream>
 
 namespace exafmm {
   //! Get bounding box of bodies
@@ -179,6 +180,7 @@ namespace exafmm {
               Body * Bj = &Cj->BODY[bj];
               if (Bi->I == Bj->I) {
                 Bi->p += Bj->p;
+                if (Bi->I<10) std::cout << Bi->I << std::endl;
                 for (int d=0; d<2; d++) Bi->F[d] += Bj->F[d];
               }
             }
