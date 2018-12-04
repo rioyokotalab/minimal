@@ -1,16 +1,16 @@
 #include "build_tree.h"
-#include "kernel0.h"
+#include "kernel2.h"
 #include "timer.h"
 #include "traverse.h"
 #include <iostream>
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 300;                                  // Number of bodies
+  const int numBodies = 10000;                                  // Number of bodies
   P = 30;                                                       // Order of expansions
-  D = 0.76;                                                     // Buffer size
-  ncrit = 64;                                                   // Number of bodies per leaf cell
-  theta = 0.0;                                                  // Multipole acceptance criterion
+  D = 0.99;                                                     // Buffer size
+  ncrit = 32;                                                   // Number of bodies per leaf cell
+  theta = 0.25;                                                 // Multipole acceptance criterion
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodie
@@ -53,10 +53,6 @@ int main(int argc, char ** argv) {
   start("L2L & L2P");                                           // Start timer
   downwardPass(cells);                                          // Downward pass for L2L, L2P
   stop("L2L & L2P");                                            // Stop timer
-  std::cout << bodies[0].listp.size() << std::endl;
-  for (size_t i=0; i<bodies[0].listp.size(); i++) {
-    //std::cout << i << " " << bodies[0].listp[i] << std::endl;
-  }
   Bodies jbodies = bodies2;
   joinBuffer(cells, jbodies);
   bodies = jbodies;
@@ -82,7 +78,6 @@ int main(int argc, char ** argv) {
   double pDif = 0, pNrm = 0;
   for (size_t b=0; b<bodies2.size(); b++) {                      // Loop over bodies & bodies2
     pDif += (bodies[b].p - bodies2[b].p) * (bodies[b].p - bodies2[b].p);// Difference of potential
-    //if (pDif > 1e-8) std::cout << bodies[b].I << " " << bodies[b].p << " " << bodies2[b].p << std::endl;
     pNrm += bodies[b].p * bodies[b].p;                           //  Value of potential
   }                                                             // End loop over bodies & bodies2
   printf("--- %-16s ------------\n", "FMM vs. direct");         // Print message

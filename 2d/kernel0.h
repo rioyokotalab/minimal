@@ -5,6 +5,7 @@
 namespace exafmm {
   //!< Weight of smoothing function
   inline real_t weight(Body * B, Cell * C) {
+    assert(C->R > D);
     real_t x = fmin(C->R - std::abs(B->X[0] - C->X[0]), D);
     real_t y = fmin(C->R - std::abs(B->X[1] - C->X[1]), D);
     if (R0 - std::abs(B->X[0] - X0[0]) < D) x = D;
@@ -49,7 +50,6 @@ namespace exafmm {
         real_t R2 = norm(dX);                                   //   Calculate distance squared
         if (R2 != 0) {                                          //   If not the same point
           p += wj;                                       //    Potential
-          if(Bi[i].I==0&&Bj[j].I==5) std::cout << wj << std::endl;
           Bi[i].listp[Bj[j].I] += wj;
         }                                                       //   End if for same point
       }                                                         //  End loop over source points

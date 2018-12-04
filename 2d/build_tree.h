@@ -146,21 +146,9 @@ namespace exafmm {
     Bodies jbodies = bodies;
     Bodies buffer = bodies;
     buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);
-#if 0
-    for (size_t i=0; i<cells.size(); i++) {
-      Cell Ci = cells[i];
-      if (Ci.NCHILD == 0) {
-        std::cout << i << " " << Ci.X[0] << " " << Ci.X[1] << " " << Ci.R <<  std::endl;
-        for (int b=0; b<Ci.NBODY; b++) {
-          Body Bi = Ci.BODY[b];
-          std::cout << i << " " << b << " " << Bi.X[0] << " " << Bi.X[1] << std::endl;
-        }
-      }
-    }
-#endif
     buffer = jbodies;
     buildCells(&buffer[0], &jbodies[0], 0, jbodies.size(), &jcells[0], jcells, X0, R0);
-    D *= R0 / (maxlevel + 1);
+    D *= R0 / (1 << maxlevel);
     getNeighbor(&cells[0], &jcells[0]);
     bodies.clear();
     bodies.reserve(buffer.size()*27);
@@ -180,7 +168,6 @@ namespace exafmm {
               Body * Bj = &Cj->BODY[bj];
               if (Bi->I == Bj->I) {
                 Bi->p += Bj->p;
-                if (Bi->I<10) std::cout << Bi->I << std::endl;
                 for (int d=0; d<2; d++) Bi->F[d] += Bj->F[d];
               }
             }
