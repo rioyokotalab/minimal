@@ -10,11 +10,11 @@ using namespace exafmm;
 
 int main(int argc, char ** argv) {
   const int numBodies = 10000;                                  // Number of bodies
-  P = 10;                                                       // Order of expansions
-  ncrit = 8;                                                    // Number of bodies per leaf cell
+  P = 30;                                                       // Order of expansions
+  ncrit = 32;                                                    // Number of bodies per leaf cell
   cycle = 2 * M_PI;                                             // Cycle of periodic boundary condition
   theta = 0.4;                                                  // Multipole acceptance criterion
-  images = 3;                                                   // 3^images * 3^images * 3^images periodic images
+  images = 0;                                                   // 3^images * 3^images * 3^images periodic images
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodies

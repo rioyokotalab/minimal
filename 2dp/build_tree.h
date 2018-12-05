@@ -89,7 +89,7 @@ namespace exafmm {
   //! Recursive call to dual tree traversal for list construction
   void getNeighbor(Cell * Ci, Cell * Cj) {
     real_t dX[2];
-    for (int d=0; d<2; d++) dX[d] = Ci->X[d] - Cj->X[d] - Xperiodic[d]; // Distance vector from source to target
+    for (int d=0; d<2; d++) dX[d] = Ci->X[d] - Cj->X[d] - iX[d] * cycle; // Distance vector from source to target
     real_t R2 = norm(dX) * theta * theta;                       // Scalar distance squared
     if (R2 > (Ci->R + Cj->R) * (Ci->R + Cj->R)) {               // If distance is far enough
     } else if (Ci->NCHILD == 0 && Cj->NCHILD == 0) {            // Else if both cells are leafs
@@ -112,11 +112,11 @@ namespace exafmm {
         for (size_t j=0; j<cells[i].listP2P.size(); j++) {
           Cell * Cj = cells[i].listP2P[j];
           for (int b=0; b<Cj->NBODY; b++) {
-            if ((std::abs(Cj->BODY[b].X[0] + Xperiodic[0] - cells[i].X[0]) - cells[i].R < D)
-                && (std::abs(Cj->BODY[b].X[1] + Xperiodic[1] - cells[i].X[1]) - cells[i].R < D)) {
+            if ((std::abs(Cj->BODY[b].X[0] + iX[0] * cycle - cells[i].X[0]) - cells[i].R < D)
+                && (std::abs(Cj->BODY[b].X[1] + iX[1] * cycle - cells[i].X[1]) - cells[i].R < D)) {
               Body body;
               body.I = Cj->BODY[b].I;
-              for (int d=0; d<2; d++) body.X[d] = Cj->BODY[b].X[d] + Xperiodic[d];
+              for (int d=0; d<2; d++) body.X[d] = Cj->BODY[b].X[d] + iX[d] * cycle;
               body.q = Cj->BODY[b].q;
               body.p = Cj->BODY[b].p;
               for (int d=0; d<2; d++) body.F[d] = Cj->BODY[b].F[d];
@@ -137,7 +137,7 @@ namespace exafmm {
     }
   }
 
-  Cells buildTree(Bodies & bodies, real_t cycle) {
+  Cells buildTree(Bodies & bodies) {
     getBounds(bodies);                                          // Get bounding box from bodies
     Cells cells(1), jcells(1);                                  // Vector of cells
     cells.reserve(bodies.size());                               // Reserve memory space
@@ -161,15 +161,13 @@ namespace exafmm {
     buildCells(&buffer[0], &jbodies[0], 0, jbodies.size(), &jcells[0], jcells, X0, R0);
     bodies.clear();
     bodies.reserve(buffer.size()*27);
-    D *= R0 / (maxlevel + 1);
+    D *= R0 / (1 << maxlevel);
     int prange = 0;
     for (int i=0; i<images; i++) {
       prange += int(powf(3.,i));
     }
-    for (int ix=-prange; ix<=prange; ix++) {
-      for (int iy=-prange; iy<=prange; iy++) {
-        Xperiodic[0] = ix * cycle;
-        Xperiodic[1] = iy * cycle;
+    for (iX[0]=-prange; iX[0]<=prange; iX[0]++) {
+      for (iX[1]=-prange; iX[1]<=prange; iX[1]++) {
         getNeighbor(&cells[0], &jcells[0]);
         addBuffer(cells, bodies);
       }
@@ -199,7 +197,7 @@ namespace exafmm {
     }
   }
 
-  void joinBuffer(Cells & jcells, Bodies & bodies, real_t cycle) {
+  void joinBuffer(Cells & jcells, Bodies & bodies) {
     getBounds(bodies);
     Cells cells(1);
     cells.reserve(bodies.size());
@@ -209,10 +207,8 @@ namespace exafmm {
     for (int i=0; i<images; i++) {
       prange += int(powf(3.,i));
     }
-    for (int ix=-prange; ix<=prange; ix++) {
-      for (int iy=-prange; iy<=prange; iy++) {
-        Xperiodic[0] = ix * cycle;
-        Xperiodic[1] = iy * cycle;
+    for (iX[0]=-prange; iX[0]<=prange; iX[0]++) {
+      for (iX[1]=-prange; iX[1]<=prange; iX[1]++) {
         getNeighbor(&cells[0], &jcells[0]);
       }
     }

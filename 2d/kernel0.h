@@ -50,7 +50,6 @@ namespace exafmm {
         real_t R2 = norm(dX);                                   //   Calculate distance squared
         if (R2 != 0) {                                          //   If not the same point
           p += wj;                                       //    Potential
-          Bi[i].listp[Bj[j].I] += wj;
         }                                                       //   End if for same point
       }                                                         //  End loop over source points
       Bi[i].p += p * wi;                                        //  Accumulate potential

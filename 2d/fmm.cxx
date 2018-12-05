@@ -6,11 +6,11 @@
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 10000;                                  // Number of bodies
+  const int numBodies = 100000;                                 // Number of bodies
   P = 30;                                                       // Order of expansions
-  D = 0.99;                                                     // Buffer size
+  D = 0.5;                                                      // Buffer size
   ncrit = 32;                                                   // Number of bodies per leaf cell
-  theta = 0.25;                                                 // Multipole acceptance criterion
+  theta = 0.4;                                                  // Multipole acceptance criterion
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodie
@@ -20,7 +20,6 @@ int main(int argc, char ** argv) {
   srand48(0);                                                   // Set seed for random number generator
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
     bodies[b].I = b;                                            //  Body index
-    bodies[b].listp.resize(numBodies);
     for (int d=0; d<2; d++) {                                   //  Loop over dimension
       bodies[b].X[d] = drand48() * 2 * M_PI - M_PI;             //   Initialize positions
     }                                                           //  End loop over dimension
@@ -40,9 +39,6 @@ int main(int argc, char ** argv) {
   Bodies bodies2 = bodies;
   Cells cells = buildTree(bodies);                              // Build tree
   stop("Build tree");                                           // Stop timer
-  for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
-    bodies[b].listp.resize(numBodies);
-  }
   //! FMM evaluation
   start("P2M & M2M");                                           // Start timer
   upwardPass(cells);                                            // Upward pass for P2M, M2M
