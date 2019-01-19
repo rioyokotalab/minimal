@@ -6,10 +6,10 @@
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 300;                                  // Number of bodies
+  const int numBodies = 3;                                  // Number of bodies
   P = 30;                                                       // Order of expansions
   D = 0.76;                                                     // Buffer size
-  ncrit = 64;                                                   // Number of bodies per leaf cell
+  ncrit = 2;                                                   // Number of bodies per leaf cell
   theta = 0.0;                                                  // Multipole acceptance criterion
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
@@ -53,10 +53,6 @@ int main(int argc, char ** argv) {
   start("L2L & L2P");                                           // Start timer
   downwardPass(cells);                                          // Downward pass for L2L, L2P
   stop("L2L & L2P");                                            // Stop timer
-  std::cout << bodies[0].listp.size() << std::endl;
-  for (size_t i=0; i<bodies[0].listp.size(); i++) {
-    //std::cout << i << " " << bodies[0].listp[i] << std::endl;
-  }
   Bodies jbodies = bodies2;
   joinBuffer(cells, jbodies);
   bodies = jbodies;

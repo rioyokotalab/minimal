@@ -140,8 +140,8 @@ namespace exafmm {
   Cells buildTree(Bodies & bodies, real_t cycle) {
     getBounds(bodies);                                          // Get bounding box from bodies
     Cells cells(1), jcells(1);                                  // Vector of cells
-    cells.reserve(bodies.size());                               // Reserve memory space
-    jcells.reserve(bodies.size());                               // Reserve memory space
+    cells.reserve(2*bodies.size());                               // Reserve memory space
+    jcells.reserve(2*bodies.size());                               // Reserve memory space
     Bodies jbodies = bodies;                                    // Copy bodies to buffer
     Bodies buffer = bodies;                                     // Copy bodies to buffer
     buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);// Build tree recursively
@@ -202,7 +202,7 @@ namespace exafmm {
   void joinBuffer(Cells & jcells, Bodies & bodies, real_t cycle) {
     getBounds(bodies);
     Cells cells(1);
-    cells.reserve(bodies.size());
+    cells.reserve(2*bodies.size());
     Bodies buffer = bodies;
     buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
     int prange = 0;

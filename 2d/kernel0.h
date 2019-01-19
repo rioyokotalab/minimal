@@ -49,7 +49,7 @@ namespace exafmm {
         real_t R2 = norm(dX);                                   //   Calculate distance squared
         if (R2 != 0) {                                          //   If not the same point
           p += wj;                                       //    Potential
-          if(Bi[i].I==0&&Bj[j].I==5) std::cout << wj << std::endl;
+          if(Bi[i].I==0&&Bj[j].I==5) std::cout << Ci->X[0] << " " << Ci->X[1] << " " << Cj->X[0] << " " << Cj->X[1] << std::endl;
           Bi[i].listp[Bj[j].I] += wj;
         }                                                       //   End if for same point
       }                                                         //  End loop over source points

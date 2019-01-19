@@ -141,8 +141,8 @@ namespace exafmm {
   Cells buildTree(Bodies & bodies) {
     getBounds(bodies);
     Cells cells(1), jcells(1);
-    cells.reserve(bodies.size());
-    jcells.reserve(bodies.size());
+    cells.reserve(2*bodies.size());
+    jcells.reserve(2*bodies.size());
     Bodies jbodies = bodies;
     Bodies buffer = bodies;
     buildCells(&buffer[0], &bodies[0], 0, bodies.size(), &cells[0], cells, X0, R0);
@@ -180,7 +180,7 @@ namespace exafmm {
               Body * Bj = &Cj->BODY[bj];
               if (Bi->I == Bj->I) {
                 Bi->p += Bj->p;
-                if (Bi->I<10) std::cout << Bi->I << std::endl;
+                //if (Bi->I<1) std::cout << Bi->p << std::endl;
                 for (int d=0; d<2; d++) Bi->F[d] += Bj->F[d];
               }
             }
@@ -194,7 +194,7 @@ namespace exafmm {
   void joinBuffer(Cells & jcells, Bodies & bodies) {
     getBounds(bodies);
     Cells cells(1);
-    cells.reserve(bodies.size());
+    cells.reserve(2*bodies.size());
     Bodies buffer = bodies;
     buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
     getNeighbor(&cells[0], &jcells[0]);
