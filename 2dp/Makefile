@@ -11,8 +11,6 @@ kernel: kernel.cxx
 	./kernel 30
 
 fmm: fmm.cxx
-	$(CXX) $? -o $@ -DEXAFMM_EAGER
-	./fmm
 	$(CXX) $? -o $@ -DEXAFMM_LAZY
 	./fmm
 

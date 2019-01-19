@@ -1,5 +1,5 @@
 #include "build_tree.h"
-#include "kernel0.h"
+#include "kernel2.h"
 #include "timer.h"
 #include "traverse.h"
 #include <iostream>
@@ -20,7 +20,6 @@ int main(int argc, char ** argv) {
   srand48(0);                                                   // Set seed for random number generator
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
     bodies[b].I = b;                                            //  Body index
-    bodies[b].listp.resize(numBodies);
     for (int d=0; d<2; d++) {                                   //  Loop over dimension
       bodies[b].X[d] = drand48() * 2 * M_PI - M_PI;             //   Initialize positions
     }                                                           //  End loop over dimension
@@ -40,9 +39,6 @@ int main(int argc, char ** argv) {
   Bodies bodies2 = bodies;
   Cells cells = buildTree(bodies);                              // Build tree
   stop("Build tree");                                           // Stop timer
-  for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
-    bodies[b].listp.resize(numBodies);
-  }
   //! FMM evaluation
   start("P2M & M2M");                                           // Start timer
   upwardPass(cells);                                            // Upward pass for P2M, M2M
@@ -78,7 +74,6 @@ int main(int argc, char ** argv) {
   double pDif = 0, pNrm = 0;
   for (size_t b=0; b<bodies2.size(); b++) {                      // Loop over bodies & bodies2
     pDif += (bodies[b].p - bodies2[b].p) * (bodies[b].p - bodies2[b].p);// Difference of potential
-    //if (pDif > 1e-8) std::cout << bodies[b].I << " " << bodies[b].p << " " << bodies2[b].p << std::endl;
     pNrm += bodies[b].p * bodies[b].p;                           //  Value of potential
   }                                                             // End loop over bodies & bodies2
   printf("--- %-16s ------------\n", "FMM vs. direct");         // Print message

@@ -5,6 +5,7 @@
 namespace exafmm {
   //!< Weight of smoothing function
   inline real_t weight(Body * B, Cell * C) {
+    assert(C->R > D);
     real_t x = fmin(C->R - std::abs(B->X[0] - C->X[0]), D);
     real_t y = fmin(C->R - std::abs(B->X[1] - C->X[1]), D);
     if (R0 - std::abs(B->X[0] - X0[0]) < D) x = D;

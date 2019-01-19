@@ -1,5 +1,6 @@
 #ifndef exafmm_h
 #define exafmm_h
+#include <cassert>
 #include <complex>
 #include <cstdio>
 #include <cstdlib>
@@ -37,19 +38,25 @@ namespace exafmm {
   };
   typedef std::vector<Cell> Cells;                              //!< Vector of cells
 
-  //!< L2 norm of vector X
-  inline real_t norm(real_t * X) {
-    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
-  }
   //! Global variables
   int P;                                                        //!< Order of expansions
   int ncrit;                                                    //!< Number of bodies per leaf cell
   int images;                                                   //!< Number of periodic image sublevels
+  int maxlevel;                                                 //!< Maximum number of levels in tree
   int iX[2];                                                    //!< 2-D periodic index
+  real_t D;                                                     //!< Buffer size
   real_t cycle;                                                 //!< Cycle of periodic boundary condition
   real_t theta;                                                 //!< Multipole acceptance criterion
+  real_t R0;                                                    //!< Radius of root cell
+  real_t X0[2];                                                 //!< Center of root cell
   real_t dX[2];                                                 //!< Distance vector
 #pragma omp threadprivate(iX,dX)                                //!< Make global variables private
+
+  //!< L2 norm of vector X
+  inline real_t norm(real_t * X) {
+    return X[0] * X[0] + X[1] * X[1];                           // L2 norm
+  }
+
 }
 
 #endif
