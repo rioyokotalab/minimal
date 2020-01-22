@@ -15,9 +15,7 @@ int main(int argc, char ** argv) {
   theta = 0.5;                                                  // Multipole acceptance criterion
   images = 0;                                                   // 3^images * 3^images * 3^images periodic images
 
-  printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
   //! Initialize bodies
-  start("Initialize bodies");                                   // Start timer
   Bodies bodies(numBodies);                                     // Initialize bodies
   real_t average = 0;                                           // Average charge
   srand48(0);                                                   // Set seed for random number generator
@@ -35,30 +33,22 @@ int main(int argc, char ** argv) {
   for (size_t b=0; b<bodies.size(); b++) {                      // Loop over bodies
     bodies[b].q -= average;                                     // Charge neutral
   }                                                             // End loop over bodies
-  stop("Initialize bodies");                                    // Stop timer
 
   //! Build tree
-  start("Build tree");                                          // Start timer
   Bodies bodies2 = bodies;
   Cells  cells = buildTree(bodies,cycle);                       // Build tree
-  stop("Build tree");                                           // Stop timer
 
   //! FMM evaluation
-  start("P2M & M2M");                                           // Start timer
+  start("FMM time");                                           // Start timer
   upwardPass(cells);                                            // Upward pass for P2M, M2M
-  stop("P2M & M2M");                                            // Stop timer
-  start("M2L & P2P");                                           // Start timer
   horizontalPass(cells, cells, cycle);                          // Horizontal pass for M2L, P2P
-  stop("M2L & P2P");                                            // Stop timer
-  start("L2L & L2P");                                           // Start timer
   downwardPass(cells);                                          // Downward pass for L2L, L2P
-  stop("L2L & L2P");                                            // Stop timer
+  stop("FMM time");                                           // Start timer
   Bodies jbodies = bodies2;
   joinBuffer(cells, jbodies, cycle);
   bodies = jbodies;
 
   // Direct N-Body
-  start("Direct N-Body");                                       // Start timer
   const int numTargets = 10;                                    // Number of targets for checking answer
   int stride = bodies.size() / numTargets;                      // Stride of sampling
   for (int b=0; b<numTargets; b++) {                            // Loop over target samples
@@ -72,7 +62,6 @@ int main(int argc, char ** argv) {
     for (int d=0; d<2; d++) bodies[b].F[d] = 0;                 //  Clear force
   }                                                             // End loop over bodies
   direct(bodies, jbodies, cycle);                               // Direct N-Body
-  stop("Direct N-Body");                                        // Stop timer
 
   //! Verify result
   double pDif = 0, pNrm = 0, FDif = 0, FNrm = 0;
@@ -83,8 +72,6 @@ int main(int argc, char ** argv) {
       + (bodies[b].F[0] - bodies2[b].F[0]) * (bodies[b].F[0] - bodies2[b].F[0]);// Difference of force
     FNrm += bodies[b].F[0] * bodies[b].F[0] + bodies[b].F[1] * bodies[b].F[1];//  Value of force
   }                                                             // End loop over bodies & bodies2
-  printf("--- %-16s ------------\n", "FMM vs. direct");         // Print message
-  printf("%-20s : %8.5e s\n","Rel. L2 Error (p)", sqrt(pDif/pNrm));// Print potential error
-  printf("%-20s : %8.5e s\n","Rel. L2 Error (F)", sqrt(FDif/FNrm));// Print force error
+  printf("%-20s : %8.5e\n","Rel. L2 Error (F)", sqrt(FDif/FNrm));// Print force error
   return 0;
 }
