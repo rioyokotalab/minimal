@@ -7,12 +7,12 @@
 using namespace exafmm;
 
 int main(int argc, char ** argv) {
-  const int numBodies = 10000;                                  // Number of bodies
+  const int numBodies = atoi(argv[1]);                          // Number of bodies
   const real_t cycle = 2 * M_PI;                                // Cycle of periodic boundary condition
-  P = 30;                                                       // Order of expansions
-  D = 0.25;                                                     // Buffer size
+  P = atoi(argv[2]);                                            // Order of expansions
+  D = atof(argv[3]);                                            // Buffer size
   ncrit = 64;                                                   // Number of bodies per leaf cell
-  theta = 0.2;                                                  // Multipole acceptance criterion
+  theta = 0.5;                                                  // Multipole acceptance criterion
   images = 0;                                                   // 3^images * 3^images * 3^images periodic images
 
   printf("--- %-16s ------------\n", "FMM Profiling");          // Start profiling
